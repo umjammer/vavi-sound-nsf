@@ -2361,7 +2361,8 @@ public abstract class FidFilter {
         int ch;
         int p = 0; // buf
         int strP = 0;
-        while ((ch = str[strP++]) != 0) {
+        while (strP < str.length) {
+            ch = str[strP++];
             if (p + 10 >= bufend) {
                 throw new IllegalArgumentException("Buffer overflow in fidlib expand_spec()");
             }
@@ -2498,24 +2499,25 @@ public abstract class FidFilter {
     /**
      * List all the known filters to the given file handle
      */
-    protected void fid_list_filters(OutputStream out) throws IOException {
-        for (int a = 0; filter[a].format != null; a++) {
+    public void fid_list_filters(OutputStream out) throws IOException {
+        for (int a = 0; a < filter.length; a++) {
             byte[] buf = new byte[4096];
             expand_spec(buf, buf.length, filter[a].format.getBytes());
-            out.write(String.format("%s\n    ", buf).getBytes());
+            out.write(String.format("%s\n    ", new String(buf)).getBytes());
             expand_spec(buf, buf.length, filter[a].text.getBytes());
-            out.write(String.format("%s\n", buf).getBytes());
+            out.write(String.format("%s\n", new String(buf)).getBytes());
         }
     }
 
     /**
      * List all the known filters to the given buffer; the buffer is
-     * NUL-terminated; returns 1 okay, 0 not enough space
+     * NUL-terminated;
+     * @return 1 okay, 0 not enough space
      */
-    protected int fid_list_filters_buf(String buf, int bufend) {
+    public int fid_list_filters_buf(String buf, int bufend) {
         byte[] tmp = new byte[bufend];
 
-        for (int a = 0; filter[a].format != null; a++) {
+        for (int a = 0; a < filter.length; a++) {
             expand_spec(tmp, tmp.length, filter[a].format.getBytes());
             buf += String.format("%s\n    ", new String(tmp));
             if (buf.length() >= bufend) {

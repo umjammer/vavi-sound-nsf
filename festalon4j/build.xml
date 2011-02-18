@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="Shift_JIS"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 <!-- Copyright (c) 2006 by Naohide Sano, All rights reserved.               -->
@@ -12,15 +12,15 @@
 <!--                                                                        -->
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<project name="nsf" default="run" basedir=".">
+<project name="nsf" default="compile" basedir=".">
 
-  <!-- ƒvƒƒpƒeƒB‚Ì’è‹` -->
+  <!-- ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã®å®šç¾© -->
   <property file="local.properties" />
 
   <property name="dir.src" value="src" />
   <property name="dir.build" value="build" />
 
-  <!-- ƒNƒ‰ƒXƒpƒX‚Ì’è‹` -->
+  <!-- ã‚¯ãƒ©ã‚¹ãƒ‘ã‚¹ã®å®šç¾© -->
   <path id="project.class.path">
 <!--
     <fileset dir="lib">
@@ -29,20 +29,20 @@
 -->
   </path>
 
-  <!-- ƒ^[ƒQƒbƒg‚Ì’è‹` -->
+  <!-- ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®å®šç¾© -->
 
   <!-- clean -->
-  <target name="clean" description="ƒrƒ‹ƒhŠÂ‹«‚ÌƒNƒŠƒA">
+  <target name="clean" description="ãƒ“ãƒ«ãƒ‰ç’°å¢ƒã®ã‚¯ãƒªã‚¢">
     <delete dir="${dir.build}" />
   </target>
 
   <!-- prepare -->
-  <target name="prepare" description="ƒrƒ‹ƒhŠÂ‹«‚Ì€”õ">
+  <target name="prepare" description="ãƒ“ãƒ«ãƒ‰ç’°å¢ƒã®æº–å‚™">
     <mkdir dir="${dir.build}" />
   </target>
 
   <!-- javac -->
-  <target name="compile" depends="prepare" description="ƒRƒ“ƒpƒCƒ‹">
+  <target name="compile" depends="prepare" description="ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«">
     <javac debug="on" destdir="${dir.build}" deprecation="true">
       <classpath refid="project.class.path" />
       <include name="**/*.java" />
@@ -51,7 +51,7 @@
   </target>
 
   <!-- run -->
-  <target name="run" depends="compile" description="ƒvƒƒOƒ‰ƒ€‚ÌŽÀs">
+  <target name="run" depends="compile" description="ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®å®Ÿè¡Œ">
     <java classname="vavi.sound.nsf.Nsf" fork="yes">
       <classpath>
         <path refid="project.class.path" />
