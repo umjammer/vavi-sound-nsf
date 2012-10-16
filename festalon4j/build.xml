@@ -33,7 +33,12 @@
 
   <!-- clean -->
   <target name="clean" description="ビルド環境のクリア">
-    <delete dir="${dir.build}" />
+    <fileset dir="${dir.build}" failonerror="false">
+      <include name="**/*" />
+    </fileset>
+    <fileset dir="target/test-classes" failonerror="false">
+      <include name="**/*" />
+    </fileset>
   </target>
 
   <!-- prepare -->
