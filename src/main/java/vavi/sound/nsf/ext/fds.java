@@ -26,9 +26,9 @@ import vavi.sound.nsf.Writer;
 
 
 /**
- * fds. 
+ * fds.
  *
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
 public class fds extends ExpSound {
@@ -78,7 +78,7 @@ public class fds extends ExpSound {
     /** */
     private Reader sReader = new Reader() {
         public int exec(int address, int dataBus) {
-    
+
             switch (address & 0xf) {
             case 0x0:
                 return (amplitude[0] | (dataBus & 0xc0));
@@ -93,7 +93,7 @@ public class fds extends ExpSound {
     private Writer sWriter = new Writer() {
         public void exec(int address, int value) {
             fillHi();
-    
+
             address -= 0x4080;
             switch (address) {
             case 0x0:
@@ -121,7 +121,7 @@ public class fds extends ExpSound {
             // if(A==0xA || A==0x9)
             // printf("$%04x:$%02x\n",A,V);
             spsg[address] = (byte) value;
-    
+
             if (address == 0x9) {
                 redoCO();
             }

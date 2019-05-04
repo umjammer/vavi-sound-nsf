@@ -1,5 +1,5 @@
 /*
- * Command-list based filter-running code.  
+ * Command-list based filter-running code.
  *
  * Copyright (c) 2002-2003 Jim Peters <http://uazu.net/>.  This
  * file is released under the GNU Lesser General Public License
@@ -21,9 +21,9 @@ package vavi.sound.fidlib;
 
 
 /**
- * CommandListFidFilter. 
+ * CommandListFidFilter.
  *
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060901 nsano initial version <br>
  */
 class CommandListFidFilter extends FidFilter {
@@ -98,7 +98,7 @@ class CommandListFidFilter extends FidFilter {
 
     /**
      * Step commands:
-     * 
+     *
      * <pre>
      *    0  END
      *    1  IIR coefficient (1+0)
@@ -124,7 +124,7 @@ class CommandListFidFilter extends FidFilter {
      *   21  Nx (IIR+FIR + IIR+FIR end-stage) (2+3)
      *   22  Gain coefficient (0+1)
      * </pre>
-     * 
+     *
      * Most filters are made up of 2x2 IIR/FIR pairs, which means a list of
      * command 18 bytes. The other big job would be long FIR filters. These have
      * to be handled with a list of 7,6,5 commands, plus a 13 command.

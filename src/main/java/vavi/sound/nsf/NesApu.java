@@ -789,7 +789,7 @@ public class NesApu {
                         lengthCount[p]--;
                     }
                 }
-    
+
                 // Frequency Sweep Code Here
                 // xxxx 0000
                 // xxxx = hz. 120/(x+1)

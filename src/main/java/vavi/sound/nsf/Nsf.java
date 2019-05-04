@@ -23,9 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -36,14 +33,12 @@ import vavi.sound.nsf.ext.mmc5;
 import vavi.sound.nsf.ext.n106;
 import vavi.sound.nsf.ext.vrc6;
 import vavi.sound.nsf.ext.vrc7;
-import vavi.util.Debug;
-import vavi.util.StringUtil;
 
 
 /**
  * Nsf.
- * 
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ *
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060310 nsano initial version <br>
  */
 class Nsf extends Plugin {
@@ -291,7 +286,7 @@ class Nsf extends Plugin {
 
         nsfSize = size - 0x80;
 
-        nsfMaxBank = ((nsfSize + (loadAddr & 0xfff) + 4095) / 4096);
+        nsfMaxBank = (nsfSize + (loadAddr & 0xfff) + 4095) / 4096;
         nsfMaxBank = uppow2(nsfMaxBank);
 
         if (info_only == 0) {
@@ -501,7 +496,7 @@ class Nsf extends Plugin {
 
     /**
      * Selects current song.
-     * @param which song number 
+     * @param which song number
      */
     public void controlSong(int which) {
         currentSong = which;
@@ -510,7 +505,7 @@ class Nsf extends Plugin {
 
     /**
      * @param count [0]
-     * @return wave 
+     * @return wave
      */
     public float[] emulate(int[] count) {
         // Reset the stack if we're going to call the play routine or the init
@@ -722,6 +717,7 @@ class Nsf extends Plugin {
             }
             return 1;
         } catch (IOException e) {
+e.printStackTrace();
             assert false;
             return 0;
         }
@@ -741,7 +737,7 @@ class Nsf extends Plugin {
     }
 
     /**
-     * @param totalsize out 
+     * @param totalsize out
      */
     private byte[] createNSFE(int[] totalsize) {
         try {
@@ -873,49 +869,6 @@ class Nsf extends Plugin {
             apu.waveFinal = null;
         }
         apu.waveFinal = new float[apu.waveFinalLen];
-    }
-
-    // ----
-
-    /** */
-    public static void main(String[] args) throws Exception {
-        File file = new File(args[0]);
-        byte[] buffer = new byte[(int) file.length()];
-        InputStream is = new FileInputStream(file);
-        int l = 0;
-        while (l < buffer.length) {
-            int r = is.read(buffer, l, buffer.length - l);
-            if (r < 0) {
-                throw new EOFException();
-            }
-            l += r;
-        }
-        Nsf nsf = (Nsf) Nsf.load(buffer, buffer.length);
-Debug.println("nsf: " + StringUtil.paramString(nsf));
-        nsf.setSound(22000, 1);
-        nsf.setVolume(100);
-        nsf.setLowpass(false, 0, 0);
-        float[] wave = nsf.emulate(new int[1]);
-Debug.println("wave: " + (wave != null ? wave.length : null));
-
-//        AudioFormat audioFormat = new AudioFormat(22000, 8, 1, true, false);
-//
-//        DataLine.Info info = new DataLine.Info(Clip.class, audioFormat);
-//        Clip clip = (Clip) AudioSystem.getLine(info);
-//        
-//        clip.open(audioFormat, wave, 0, wave.length);
-//        clip.setFramePosition(0);
-//        
-//        clip.start();
-//        clip.drain();
-//        while (clip.isRunning()) {
-//            try {
-//                Thread.sleep(200);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace(System.err);
-//            }
-//        }
-//        clip.close();
     }
 }
 

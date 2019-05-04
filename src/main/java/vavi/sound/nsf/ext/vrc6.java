@@ -25,9 +25,9 @@ import vavi.sound.nsf.Writer;
 
 
 /**
- * vrc6. 
+ * vrc6.
  *
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
 public class vrc6 extends ExpSound {
@@ -43,7 +43,7 @@ public class vrc6 extends ExpSound {
 
     private Writer sWriter = new Writer() {
         public void exec(int address, int value) {
-    
+
             address &= 0xF003;
             if (address >= 0x9000 && address <= 0x9002) {
                 doSQV1HQ();
@@ -59,7 +59,7 @@ public class vrc6 extends ExpSound {
     };
 
     private void doSQVHQ(int i) {
-        
+
         int amp = ((vpsg[i << 2] & 15) << 8) * 6 / 8;
 
         if ((vpsg[(i << 2) | 0x2] & 0x80) != 0 && (disabled & (0x1 << i)) == 0) {
@@ -80,7 +80,7 @@ public class vrc6 extends ExpSound {
                     gapu.waveHi[v] += curout;
                     vcount[i]--;
                     if (vcount[i] <= 0) { /* Should only be <0 in a few circumstances. */
-                    
+
                         vcount[i] = (vpsg[(i << 2) | 0x1] | ((vpsg[(i << 2) | 0x2] & 15) << 8)) + 1;
                         dcount[i] = (dcount[i] + 1) & 15;
                         curout = 0;

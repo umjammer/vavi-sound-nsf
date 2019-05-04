@@ -21,7 +21,7 @@
  *
  * Robert Bristow-Johnson's EQ cookbook formulae:
  * http://www.harmony-central.com/Computer/Programming/Audio-EQ-Cookbook.txt
- */	
+ */
 
 package vavi.sound.fidlib;
 
@@ -43,20 +43,20 @@ import java.util.Scanner;
  * The spec consists of a series of letters usually followed by the order of the
  * filter and then by any other parameters required, preceded by slashes. For
  * example:
- * 
+ *
  * <pre>
  *    LpBu4/20.4    Lowpass butterworth, 4th order, -3.01dB at 20.4Hz
  *    BpBu2/3-4 Bandpass butterworth, 2nd order, from 3 to 4Hz
  *    BpBu2/=3-4    Same filter, but adjusted exactly to the range given
  *    BsRe/1000/10  Bandstop resonator, Q=1000, frequency 10Hz
  * </pre>
- * 
+ *
  * The routines fid_design() or fid_parse() are used to convert this spec-string
  * into filter coefficients and a description (if required).
  * <p>
- * 
+ *
  * Typical usage:
- * 
+ *
  * <pre>
  *  FidFilter *filt, *filt2;
  *  char *desc;
@@ -65,24 +65,24 @@ import java.util.Scanner;
  *  void *fbuf1, *fbuf2;
  *  int delay;
  *  void my_error_func(char *err);
- * 
+ *
  *  // Design a filter, and optionally get its long description
  *  filt= fid_design(spec, rate, freq0, freq1, adj, &amp;desc);
- * 
+ *
  *  // List all the possible filter types
  *  fid_list_filters(stdout);
  *  okay= fid_list_filters_buf(buf, buf+sizeof(buf));
- * 
+ *
  *  // Calculate the response of the filter at a given frequency
- *  // (frequency is given as a proportion of the sampling rate, in 
- *  // the range 0 to 0.5).  If phase is returned, then this is 
+ *  // (frequency is given as a proportion of the sampling rate, in
+ *  // the range 0 to 0.5).  If phase is returned, then this is
  *  // given in the range 0 to 1 (for 0 to 2*pi).
  *  resp= fid_response(filt, freq);
  *  resp= fid_response_pha(filt, freq, &amp;phase);
- * 
+ *
  *  // Estimate the signal delay caused by a particular filter, in samples
  *  delay= fid_calc_delay(filt);
- *  
+ *
  *  // Run a given filter (this will do JIT filter compilation if this is
  *  // implemented for this processor / OS)
  *  run= fid_run_new(filt, &amp;funcp);
@@ -97,8 +97,8 @@ import java.util.Scanner;
  *  fid_run_freebuf(fbuf2);
  *  fid_run_freebuf(fbuf1);
  *  fid_run_free(run);
- * 
- *  // If you need to allocate your own buffers separately for some 
+ *
+ *  // If you need to allocate your own buffers separately for some
  *  // reason, then do it this way:
  *  run= fid_run_new(filt, &amp;funcp);
  *  len= fid_run_bufsize(run);
@@ -113,37 +113,37 @@ import java.util.Scanner;
  *  free(fbuf2);
  *  free(fbuf1);
  *  fid_run_free(run);
- *  
- *  // Convert an arbitrary filter into a new filter which is a single 
- *  // IIR/FIR pair.  This is done by convolving the coefficients.  This 
- *  // flattened filter will give the same result, in theory.  However, 
- *  // in practice this will be less accurate, especially in cases where 
- *  // the limits of the floating point format are being reached (e.g. 
+ *
+ *  // Convert an arbitrary filter into a new filter which is a single
+ *  // IIR/FIR pair.  This is done by convolving the coefficients.  This
+ *  // flattened filter will give the same result, in theory.  However,
+ *  // in practice this will be less accurate, especially in cases where
+ *  // the limits of the floating point format are being reached (e.g.
  *  // subtracting numbers with small highly significant differences).
  *  // The routine also ensures that the IIR first coefficient is 1.0.
  *  filt2= fid_flatten(filt);
  *  free(filt);
- *  
+ *
  *  // Parse an entire filter-spec string possibly containing several FIR,
- *  // IIR and predefined filters and return it as a FidFilter at the given 
+ *  // IIR and predefined filters and return it as a FidFilter at the given
  *  // location.  Stops at the first ,; or unmatched )]} character, or the end
  *  // of the string.  Returns a strdup'd error string on error, or else 0.
  *  err= fid_parse(double rate, char **pp, FidFilter **ffp);
- *  
- *  // Set up your own fatal-error handler (default is to dump a message 
+ *
+ *  // Set up your own fatal-error handler (default is to dump a message
  *  // to STDERR and exit on fatal conditions)
  *  fid_set_error_handler(&amp;my_error_func);
- *  
+ *
  *  // Get the version number of the library as a string (e.g. &quot;1.0.0&quot;)
  *  txt= fid_version();
- *  
- *  // Design a filter and reduce it to a list of all the non-const 
+ *
+ *  // Design a filter and reduce it to a list of all the non-const
  *  // coefficients, which is returned in the given double[].  The number
  *  // of coefficients expected must be provided (as a check).
  *  #define N_COEF &lt;whatever&gt;
  *  double coef[N_COEF], gain;
  *  gain= fid_design_coef(coef, N_COEF, spec, rate, freq0, freq1, adj);
- *  
+ *
  *  // Rewrite a filter spec in a full and/or separated-out form
  *  char *full, *min;
  *  double minf0, minf1;
@@ -151,13 +151,13 @@ import java.util.Scanner;
  *  fid_rewrite_spec(spec, freq0, freq1, adj, &amp;full, &amp;min, &amp;minf0, &amp;minf1, &amp;minadj);
  *  ...
  *  free(full); free(min);
- *  
+ *
  *  // Create a FidFilter based on coefficients provided in the
- *  // given double array.  
+ *  // given double array.
  *  static double array[]= { 'I', 3, 1.0, 0.55, 0.77, 'F', 3, 1, -2, 1, 0 };
  *  filt= fid_cv_array(array);
- *  
- *  // Join a number of filters into a single filter (and free them too, 
+ *
+ *  // Join a number of filters into a single filter (and free them too,
  *  // if the first argument is 1)
  *  filt= fid_cat(0, filt1, filt2, filt3, filt4, 0);
  * </pre>
@@ -214,7 +214,7 @@ public abstract class FidFilter {
         /**
          * Select which method of filter execution is preferred. RF_CMDLIST is
          * recommended (and is the default).
-         * 
+         *
          * <pre>
          *    RF_COMBINED -- easy to understand code, lower accuracy
          *    RF_CMDLIST  -- faster pre-compiled code
@@ -428,7 +428,7 @@ public abstract class FidFilter {
     /**
      * Get the response of a filter at the given frequency (expressed as a
      * proportion of the sampling rate, 0.0.5).
-     * 
+     *
      * Code duplicate, as I didn't want the overhead of a function call to
      * fid_response_pha. Almost every call in this routine can be inlined.
      */
@@ -469,7 +469,7 @@ public abstract class FidFilter {
      * point at which 50% of the filter calculations are complete. This involves
      * running test impulses through the filter several times. The estimated
      * delay in samples is returned.
-     * 
+     *
      * Delays longer than 8,000,000 samples are not handled well, as the code
      * drops out at this point rather than get stuck in an endless loop.
      */
@@ -520,10 +520,10 @@ public abstract class FidFilter {
 //
 // 'mkfilter'-derived code
 //
-    
+
     /**
      * mkfilter-derived code ---------------------
-     * 
+     *
      * Copyright (c) 2002-2004 Jim Peters <http://uazu.net/>. This file is released
      * under the GNU Lesser General Public License (LGPL) version 2.1 as published
      * by the Free Software Foundation. See the file COPYING_LIB for details, or
@@ -536,20 +536,20 @@ public abstract class FidFilter {
      * <p>
      * For those who didn't hear, Tony Fisher died in February 2000 at the age of
      * 43. See his web-site for information and a tribute:
-     * 
+     *
      * <pre>
      *  http://www-users.cs.york.ac.uk/&tilde;fisher/
      *  http://www-users.cs.york.ac.uk/&tilde;fisher/tribute.html
      * </pre>
-     * 
+     *
      * <p>
      * The original C++ sources and the rest of the mkfilter tool-set are still
      * available from his site:
-     * 
+     *
      * <pre>
      *  http://www-users.cs.york.ac.uk/&tilde;fisher/mkfilter/
      * </pre>
-     * 
+     *
      * I've made a number of improvements and changes whilst rewriting the code in
      * C. For example, I halved the calculations required in designing the filters
      * by storing only one complex pole/zero out of each conjugate pair. This also
@@ -566,10 +566,10 @@ public abstract class FidFilter {
      * functions, which ends up looking more like assembly language than C. Never
      * mind.
      */
-    
+
     /**
      * LEGAL STUFF
-     * 
+     *
      * Tony Fisher released his software on his University of York pages for free
      * use and free download. The software itself has no licence terms attached, nor
      * copyright messages, just the author's name, E-mail address and date. Nor are
@@ -585,55 +585,55 @@ public abstract class FidFilter {
      * <p>
      * (Note that I was planning to use it 'as-is' at that time, rather than rewrite
      * it as I have done now)
-     * 
+     *
      * <pre>
      *  &gt; To: &quot;Jim Peters&quot; &lt;jim@uazu.net&gt;
      *  &gt; From: &quot;Anthony Moulds&quot; &lt;anthony@cs.york.ac.uk&gt;
      *  &gt; Subject: RE: mkfilter source
      *  &gt; Date: Tue, 29 Oct 2002 15:30:19 -0000
-     *  &gt; 
+     *  &gt;
      *  &gt; Hi Jim,
-     *  &gt; 
+     *  &gt;
      *  &gt; Thanks for your email.
-     *  &gt; 
+     *  &gt;
      *  &gt; The University will be happy to let you use Dr Fisher's mkfilter
      *  &gt; code since your intention is not to profit financially from his work.
-     *  &gt; 
+     *  &gt;
      *  &gt; It would be nice if in some way you could acknowledge his contribution.
-     *  &gt; 
+     *  &gt;
      *  &gt; Best wishes and good luck with your work,
-     *  &gt; 
+     *  &gt;
      *  &gt; Anthony Moulds
-     *  &gt; Senior Experimental Officer, 
+     *  &gt; Senior Experimental Officer,
      *  &gt; Computer Science Department,  University of York,
      *  &gt; York, England, UK. Tel: 44(0)1904 434758  Fax: 44(0)19042767
      *  &gt; ============================================================
-     *  &gt; 
-     *  &gt; 
+     *  &gt;
+     *  &gt;
      *  &gt; &gt; -----Original Message-----
      *  &gt; &gt; From: Jim Peters [mailto:jim@uazu.net]
      *  &gt; &gt; Sent: Monday, October 28, 2002 12:36 PM
      *  &gt; &gt; To: anthony@cs.york.ac.uk
      *  &gt; &gt; Subject: mkfilter source
-     *  &gt; &gt; 
-     *  &gt; &gt; 
+     *  &gt; &gt;
+     *  &gt; &gt;
      *  &gt; &gt; I'm very sorry to hear (rather late, I know) that Tony Fisher died --
      *  &gt; &gt; I've always gone straight to the filter page, rather than through his
      *  &gt; &gt; home page.  I hope his work remains available for the future.
-     *  &gt; &gt; 
+     *  &gt; &gt;
      *  &gt; &gt; Anyway, the reason I'm writing is to clarify the status of the
      *  &gt; &gt; mkfilter source code.  Because copyright is not claimed on the web
      *  &gt; &gt; page nor in the source distribution, I guess that Tony's intention was
      *  &gt; &gt; that this code should be in the public domain.  However, I would like
      *  &gt; &gt; to check this now to avoid complications later.
-     *  &gt; &gt; 
+     *  &gt; &gt;
      *  &gt; &gt; I am using his code, modified, to provide a library of filter-design
      *  &gt; &gt; routines for a GPL'd filter design app, which is not yet released.
      *  &gt; &gt; The library could also be used standalone, permitting apps to design
      *  &gt; &gt; filters at run-time rather than using hard-coded compile-time filters.
      *  &gt; &gt; My interest in filters is as a part of my work on the OpenEEG project
      * </pre>
-     * 
+     *
      * So this looks pretty clear to me. I am not planning to profit from the work,
      * so everything is fine with the University. I guess others might profit from
      * the work, indirectly, as with any free software release, but so long as I
@@ -646,9 +646,9 @@ public abstract class FidFilter {
      * very obviously based on that code, so it probably counts as a derived work --
      * although as ever "I Am Not A Lawyer".
      */
-    
+
     private static final double TWOPI = Math.PI * 2;
-    
+
     /**
      * Complex square root: aa= aa^0.5
      */
@@ -699,9 +699,9 @@ public abstract class FidFilter {
      * pole. The second value of the pair has an entry of 0 attached. (Similarly for
      * zeros in zertyp[])
      */
-    
-    private static final int MAXPZ = 64; 
-    
+
+    private static final int MAXPZ = 64;
+
     /** Number of poles */
     private int n_pol;
     /** Pole values (see above) */
@@ -711,7 +711,7 @@ public abstract class FidFilter {
     /** Same for zeros ... */
     private int n_zer;
     private double[] zer = new double[MAXPZ];
-    private byte[] zertyp = new byte[MAXPZ];  
+    private byte[] zertyp = new byte[MAXPZ];
 
     /**
      * Pre-warp a frequency
@@ -727,47 +727,47 @@ public abstract class FidFilter {
     private static final double[] bessel_1= {
         -1.00000000000e+00
     };
-    
+
     private static final double[] bessel_2= {
         -1.10160133059e+00, 6.36009824757e-01,
     };
-    
+
     private static final double[] bessel_3= {
         -1.04740916101e+00, 9.99264436281e-01,
         -1.32267579991e+00,
     };
-    
+
     private static final double[] bessel_4= {
         -9.95208764350e-01, 1.25710573945e+00,
         -1.37006783055e+00, 4.10249717494e-01,
     };
-    
+
     private static final double[] bessel_5= {
         -9.57676548563e-01, 1.47112432073e+00,
         -1.38087732586e+00, 7.17909587627e-01,
         -1.50231627145e+00,
     };
-    
+
     private static final double[] bessel_6= {
         -9.30656522947e-01, 1.66186326894e+00,
         -1.38185809760e+00, 9.71471890712e-01,
         -1.57149040362e+00, 3.20896374221e-01,
     };
-    
+
     private static final double[] bessel_7= {
         -9.09867780623e-01, 1.83645135304e+00,
         -1.37890321680e+00, 1.19156677780e+00,
         -1.61203876622e+00, 5.89244506931e-01,
         -1.68436817927e+00,
     };
-    
+
     private static final double[] bessel_8 = {
         -8.92869718847e-01, 1.99832584364e+00,
         -1.37384121764e+00, 1.38835657588e+00,
         -1.63693941813e+00, 8.22795625139e-01,
         -1.75740840040e+00, 2.72867575103e-01,
     };
-    
+
     private static final double[] bessel_9= {
         -8.78399276161e-01, 2.14980052431e+00,
         -1.36758830979e+00, 1.56773371224e+00,
@@ -775,7 +775,7 @@ public abstract class FidFilter {
         -1.80717053496e+00, 5.12383730575e-01,
         -1.85660050123e+00,
     };
-    
+
     private static final double[] bessel_10= {
         -8.65756901707e-01, 2.29260483098e+00,
         -1.36069227838e+00, 1.73350574267e+00,
@@ -783,7 +783,7 @@ public abstract class FidFilter {
         -1.84219624443e+00, 7.27257597722e-01,
         -1.92761969145e+00, 2.41623471082e-01,
     };
-    
+
     private static final double[][] bessel_poles= {
         bessel_1, bessel_2, bessel_3, bessel_4, bessel_5,
         bessel_6, bessel_7, bessel_8, bessel_9, bessel_10
@@ -791,7 +791,7 @@ public abstract class FidFilter {
 
     /**
      * Generate Bessel poles for the given order.
-     * 
+     *
      * @param order max is 10
      */
     private void bessel(int order) {
@@ -816,7 +816,7 @@ public abstract class FidFilter {
      * Generate Butterworth poles for the given order. These are
      * regularly-spaced points on the unit circle to the left of the real==0
      * line.
-     * 
+     *
      * @param order max is {@link #MAXPZ}
      */
     private void butterworth(int order) {
@@ -1128,13 +1128,13 @@ public abstract class FidFilter {
      * gain is inserted at the start of the FidFilter as a one-coefficient FIR
      * filter. This is positioned to be easily adjusted later to correct the
      * filter gain.
-     * 
+     *
      * 'cbm' should be a bitmap indicating which FIR coefficients are constants
      * for this filter type. Normal values are ~0 for all constant, or 0 for
      * none constant, or some other bitmask for a mixture. Filters generated
      * with lowpass(), highpass() and bandpass() above should pass ~0, but
      * bandstop() requires 0x5.
-     * 
+     *
      * This routine requires that any lone real poles/zeros are at the end of
      * the list. All other poles/zeros are handled in pairs (whether pairs of
      * real poles/zeros, or conjugate pairs).
@@ -1404,7 +1404,7 @@ public abstract class FidFilter {
      * gradient goes upwards from 'f0' to the peak, and then down again to 'f3'.
      * If there are any other curves, this routine will get confused and will
      * come up with some frequency, although probably not the right one.
-     * 
+     *
      * Returns the frequency of the peak.
      */
     private double search_peak(List<FidFilter> ff, double f0, double f3) {
@@ -1437,7 +1437,7 @@ public abstract class FidFilter {
      * Handle the different 'back-ends' for Bessel, Butterworth and Chebyshev
      * filters. First argument selects between bilinear (0) and matched-Z
      * (non-0). The BL and MZ macros makes this a bit more obvious in the code.
-     * 
+     *
      * Overall filter gain is adjusted to give the peak at 1.0. This is easy for
      * all types except for band-pass, where a search is required to find the
      * precise peak. This is much slower than the other types.
@@ -1499,7 +1499,7 @@ public abstract class FidFilter {
         // Use 0Hz response as reference
         rv.get(0).val[0] = 1.0 / fid_response(rv, 0.0);
         return rv;
-    }   
+    }
 
     //
     // Filter design routines and supporting code
@@ -1927,10 +1927,10 @@ public abstract class FidFilter {
 
     /**
      * Information passed to individual filter design routines:
-     * 
+     *
      * Note that #O #o #F and #R are mapped to the f0/f1/order arguments, and are
      * not included in the arg[] array.
-     * 
+     *
      * See the previous description for the required meaning of the return value
      * FidFilter list.
      */
@@ -1941,7 +1941,7 @@ public abstract class FidFilter {
         }
         /**
          * Designer routine address
-         * 
+         *
          * @param rate is the sampling rate, or 1 if not set
          * @param f0 give the frequency
          * @param f1 give the frequency or frequency range as a proportion of
@@ -1966,11 +1966,11 @@ public abstract class FidFilter {
      * Filter table
      */
     private Filter[] filter = {
-        des_bpre, 
+        des_bpre,
         des_bsre,
         des_apre,
         des_pi,
-        des_piz,  
+        des_piz,
         des_lpbe,
         des_hpbe,
         des_bpbe,
@@ -1991,40 +1991,40 @@ public abstract class FidFilter {
         des_hpbuz,
         des_bpbuz,
         des_bsbuz,
-        des_lpchz, 
-        des_hpchz, 
-        des_bpchz, 
-        des_bschz, 
+        des_lpchz,
+        des_hpchz,
+        des_bpchz,
+        des_bschz,
         des_lpbube,
-        des_lpbq,  
-        des_hpbq, 
-        des_bpbq, 
-        des_bsbq, 
-        des_apbq, 
-        des_pkbq, 
-        des_lsbq, 
-        des_hsbq, 
-        des_lpbl, 
-        des_lphm, 
-        des_lphn, 
-        des_lpba, 
+        des_lpbq,
+        des_hpbq,
+        des_bpbq,
+        des_bsbq,
+        des_apbq,
+        des_pkbq,
+        des_lsbq,
+        des_hsbq,
+        des_lpbl,
+        des_lphm,
+        des_lphn,
+        des_lpba,
     };
 
     /**
      * Design a filter. Spec and range are passed as arguments. The return value
      * is a pointer to a FidFilter as documented earlier in this file. This
      * needs to be free()d once finished with.
-     * 
+     *
      * If 'f_adj' is set, then the frequencies fed to the design code are
      * adjusted automatically to get true sqrt(0.5) (-3.01dB) values at the
      * provided frequencies. (This is obviously a slower operation)
-     * 
+     *
      * If 'descp' is non-0, then a long description of the filter is generated
      * and returned as a strdup'd string at the given location.
-     * 
+     *
      * Any problem with the spec causes the program to die with an error
      * message.
-     * 
+     *
      * 'spec' gives the specification string. The 'rate' argument gives the
      * sampling rate for the data that will be passed to the filter. This is
      * only used to interpret the frequencies given in the spec or given in
@@ -2411,12 +2411,12 @@ public abstract class FidFilter {
      * coefficients. Arguments are as for fid_filter(). The coefficients are
      * written into the given double array. If the number of coefficients
      * doesn't match the array length given, then a fatal error is generated.
-     * 
+     *
      * Note that all 1-element FIRs and IIR first-coefficients are merged into a
      * single gain coefficient, which is returned rather than being included in
      * the coefficient list. This is to allow it to be merged with other gains
      * within a stack of filters.
-     * 
+     *
      * The algorithm used here (merging 1-element FIRs and adjusting IIR
      * first-coefficients) must match that used in the code- generating code, or
      * else the coefficients won't match up. The 'n_coef' argument provides a
@@ -2828,10 +2828,10 @@ public abstract class FidFilter {
      * 'I' or 'F', as a double), then a count of the number of coefficients
      * following, then the coefficients themselves. The end of the list is
      * marked with a type of 0.
-     * 
+     *
      * This is really just a convenience function, allowing a filter to be
      * conveniently dumped to C source code and then reconstructed.
-     * 
+     *
      * Note that for more general filter generation, FidFilter instances can be
      * created simply by allocating the memory and filling them in (see
      * fidlib.h).
@@ -2990,12 +2990,12 @@ public abstract class FidFilter {
      * Parse an entire filter specification, perhaps consisting of several FIR, IIR
      * and predefined filters. Stops at the first ,; or unmatched )]}. Returns
      * either 0 on success, or else a strdup'd error string.
-     * 
+     *
      * This duplicates code from Fiview filter.c, I know, but this may have to
      * expand in the future to handle '+' operations, and special filter types like
      * tunable heterodyne filters. At that point, the filter.c code will have to be
      * modified to call a version of this routine.
-     * 
+     *
      * @throws IllegalArgumentException
      */
     public FidFilter[] fid_parse(double rate, String[] pp) {

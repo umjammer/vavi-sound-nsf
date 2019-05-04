@@ -7,14 +7,15 @@
 <!--                                                                        -->
 <!-- nsf                                                                    -->
 <!--                                                                        -->
-<!-- @author	Naohide Sano                                                -->
-<!-- @version	0.00	060910	nsano	initial version                     -->
+<!-- @author Naohide Sano                                                   -->
+<!-- @version 0.00 060910 nsano initial version                             -->
 <!--                                                                        -->
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <project name="nsf" default="compile" basedir=".">
 
   <!-- プロパティの定義 -->
+  <property environment="env"/>
   <property file="local.properties" />
 
   <property name="dir.src" value="src" />

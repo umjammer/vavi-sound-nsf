@@ -8,7 +8,7 @@ import vavi.sound.fidlib.FidFilter;
 
 
 /**
- * Test1. 
+ * Test1.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2011/02/18 umjammer initial version <br>

@@ -1,5 +1,5 @@
 /*
- * JIT-compiled filter-running code.  
+ * JIT-compiled filter-running code.
  *
  * Copyright (c) 2002-2003 Jim Peters <http://uazu.net/>.  This
  * file is released under the GNU Lesser General Public License
@@ -61,9 +61,9 @@ import java.util.List;
 
 
 /**
- * JitFidFilter. 
+ * JitFidFilter.
  *
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060901 nsano initial version <br>
  */
 class JitFidFilter extends FidFilter {
@@ -123,7 +123,7 @@ class JitFidFilter extends FidFilter {
     // %A+ 1-byte relative address of coefficient value, plus %eax inc
     // if necessary
     // %= Insert code to update %edx and %eax to point to the given offsets
-    //	
+    //
     // Startup code
     //
     // pushl %ebp
@@ -173,10 +173,10 @@ class JitFidFilter extends FidFilter {
     }
 
     // Fetching/storing buffer values
-    //	
+    //
     // tmp= buf[n];
     // fldl nn(%edx)
-    //	
+    //
     // buf[nn]= iir;
     // fld %st(1)
     // fstpl nn(%edx)
@@ -189,7 +189,7 @@ class JitFidFilter extends FidFilter {
     }
 
     // FIR element with following IIR element
-    //	
+    //
     // fir -= 2 * tmp;
     // fsub %st(0),%st(2)
     // fsub %st(0),%st(2)
@@ -226,7 +226,7 @@ class JitFidFilter extends FidFilter {
     }
 
     // FIR element with no following IIR element
-    //	
+    //
     // fir -= 2 * tmp;
     // fsub %st(0),%st(2)
     // fsubp %st(0),%st(2)
@@ -268,7 +268,7 @@ class JitFidFilter extends FidFilter {
     }
 
     // IIR element
-    //	
+    //
     // iir -= coef[nn] * tmp;
     // fmull nn(%eax)
     // fsubp %st(0),%st(1)
@@ -277,7 +277,7 @@ class JitFidFilter extends FidFilter {
     }
 
     // Final FIR element of pure-FIR or mixed FIR-IIR stage
-    //	
+    //
     // iir= fir + coef[nn] * iir; fir= 0;
     // fxch
     // fmull nn(%eax)
@@ -455,21 +455,21 @@ class JitFidFilter extends FidFilter {
      * functions are cached, so if several versions of the same filter are
      * generated with different parameters, it is likely that the same routine
      * will end up servicing all of them).
-     * 
+     *
      * Working buffers for the filter instances must be allocated separately
      * using fid_run_newbuf(). This allows many simultaneous instances of the
      * same filter to be run.
-     * 
+     *
      * The sub-filters are executed in the precise order that they are given.
      * This may lead to some inefficiency, because normally when an IIR filter
      * is followed by an FIR filter, the buffers can be shared. So, if the
      * sub-filters are not in IIR/FIR pairs, then extra memory accesses are
      * required.
-     * 
+     *
      * In any case, factors are extracted from IIR filters (so that the first
      * coefficient is 1), and single-element FIR filters are merged into the
      * global gain factor, and are ignored.
-     * 
+     *
      * The returned handle must be released using fid_run_free().
      */
     JitFidFilter(List<FidFilter> filt) {
@@ -757,13 +757,13 @@ class JitFidFilter extends FidFilter {
     void fid_run_dump(OutputStream out) {
         int a, cnt = 0;
         PrintStream ps = new PrintStream(out);
-        ps.printf("	.file	\"fid_run_dump.s\"\n" + "	.version	\"01.01\"\n" + ".text\n" + "	.align 4\n");
+        ps.printf("    .file    \"fid_run_dump.s\"\n" + "    .version    \"01.01\"\n" + ".text\n" + "    .align 4\n");
         for (Routine rr : r_list) {
-            ps.printf(".globl	process_%d\n" + "	.type	process_%d,@function\n" + "process_%d:\n", cnt, cnt, cnt);
+            ps.printf(".globl    process_%d\n" + "    .type    process_%d,@function\n" + "process_%d:\n", cnt, cnt, cnt);
             for (a = 0; a < rr.len; a++) {
-                ps.printf("	.byte 0x%02X\n", 255 & rr.code[a]);
+                ps.printf("    .byte 0x%02X\n", 255 & rr.code[a]);
             }
-            ps.printf(".Lfe1%d:\n" + "	.size	process_%d,.Lfe1%d-process_%d\n", cnt, cnt, cnt, cnt);
+            ps.printf(".Lfe1%d:\n" + "    .size    process_%d,.Lfe1%d-process_%d\n", cnt, cnt, cnt, cnt);
             cnt++;
         }
     }
@@ -790,7 +790,7 @@ class JitFidFilter extends FidFilter {
      * c will change between 1/3 and 2/3 of the time. (Well, 22/100 and 78/100
      * for some 2-bit deltas.) mix() was built out of 36 single-cycle latency
      * instructions in a structure that could supported 2x parallelism, like so:
-     * 
+     *
      * <pre>
      *       a -= b;
      *       a -= c; x = (c&gt;&gt;13);
@@ -800,7 +800,7 @@ class JitFidFilter extends FidFilter {
      *       c -= b; x = (b&gt;&gt;13);
      *       ...
      * </pre>
-     * 
+     *
      * Unfortunately, superscalar Pentiums and Sparcs can't take advantage of
      * that parallelism. They've also turned some of those single-cycle latency
      * instructions into multi-cycle latency instructions. Still, this is the
@@ -844,27 +844,27 @@ class JitFidFilter extends FidFilter {
      * prime (mod is sooo slow!). If you need less than 32 bits, use a bitmask.
      * For example, if you need only 10 bits, do
      * </p>
-     * 
+     *
      * <pre>
      * h = (h &amp; hashmask(10));
      * </pre>
-     * 
+     *
      * In which case, the hash table should have hashsize(10) elements.
      * <p>
      * If you are hashing n strings (byte **)k, do it like this:
-     * 
+     *
      * <pre>
      * for (i = 0, h = 0; i &lt; n; ++i)
      *     h = hash(k[i], len[i], h);
      * </pre>
-     * 
+     *
      * By Bob Jenkins, 1996. bob_jenkins@burtleburtle.net. You may use this code
      * any way you wish, private, educational, or commercial. It's free.
      * <p>
      * See http://burtleburtle.net/bob/hash/evahash.html Use for hash table
      * lookup, or anything where one collision in 2^^32 is acceptable. Do NOT
      * use for cryptographic purposes.
-     * 
+     *
      * @param k the key (the unaligned variable-length array of bytes)
      * @param len the length of the key, counting by bytes
      * @param initval the previous hash, or an arbitrary value. can be any

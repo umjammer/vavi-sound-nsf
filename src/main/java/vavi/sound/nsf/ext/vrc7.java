@@ -25,9 +25,9 @@ import vavi.sound.nsf.Writer;
 
 
 /**
- * vrc7. 
+ * vrc7.
  *
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060503 nsano initial version <br>
  */
 public class vrc7 extends ExpSound {

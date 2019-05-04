@@ -26,9 +26,9 @@ import vavi.sound.nsf.Writer;
 
 
 /**
- * mmc5. 
+ * mmc5.
  *
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
 public class mmc5 extends ExpSound {
@@ -97,9 +97,9 @@ public class mmc5 extends ExpSound {
     /** */
     private Writer mapper5SWriter = new Writer() {
         public void exec(int address, int value) {
-    
+
             address &= 0x1F;
-    
+
             switch (address) {
             case 0x10:
                 do5PCMHQ();
@@ -109,7 +109,7 @@ public class mmc5 extends ExpSound {
                 do5PCMHQ();
                 raw = (byte) value;
                 break;
-    
+
             case 0x0:
             case 0x4:
                 do5SQHQ(address >> 2);

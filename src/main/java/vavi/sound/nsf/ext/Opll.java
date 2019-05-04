@@ -14,7 +14,7 @@ package vavi.sound.nsf.ext;
  * To get a stock YM2413 emulator, download MSXplug.
  * </p>
  * <pre>
- * References: 
+ * References:
  * fmopl.c        -- 1999,2000 written by Tatsuyuki Satoh (MAME development).
  * fmopl.c(fixed) -- (C) 2002 Jarek Burczynski.
  * s_opl.c        -- 2001 written by Mamiya (NEZplug development).
@@ -32,7 +32,7 @@ package vavi.sound.nsf.ext;
  *          0.32            LPF implemented.<br>
  *          0.33 2001/01/18 Fixed the drum problem, refine the mix-down method.<br>
  *                          Fixed the LFO bug.<br>
- *          0.35 2001/01/24 Fixed the drum problem,<br> 
+ *          0.35 2001/01/24 Fixed the drum problem,<br>
  *                          support undocumented EG behavior.<br>
  *          0.38 2001/02/02 Improved the performance.<br>
  *                          Fixed the hi-hat and cymbal model.<br>
@@ -579,7 +579,7 @@ class Opll {
 
     /** Table for dB(0 -- (1<<DB_BITS)-1) to Liner(0 -- DB2LIN_AMP_WIDTH) */
     private void makeDB2LinTable() {
-        
+
         for (int i = 0; i < DB_MUTE + DB_MUTE; i++) {
             db2LinTable[i] = (short) (((1 << DB2LIN_AMP_BITS) - 1) * Math.pow(10, -(double) i * DB_STEP / 20));
             if (i >= DB_MUTE) {
@@ -601,7 +601,7 @@ class Opll {
 
     /** Sin Table */
     private void makeSinTable() {
-        
+
         for (int i = 0; i < PG_WIDTH / 4; i++) {
             fullSinTable[i] = (short) lin2db(Math.sin(2.0 * Math.PI * i / PG_WIDTH));
         }
@@ -624,7 +624,7 @@ class Opll {
 
     /** Table for Pitch Modulator */
     private void makePmTable() {
-        
+
         for (int i = 0; i < PM_PG_WIDTH; i++) {
             pmTable[i] = (int) (PM_AMP * Math.pow(2, PM_DEPTH * Math.sin(2.0 * Math.PI * i / PM_PG_WIDTH) / 1200));
         }
@@ -632,7 +632,7 @@ class Opll {
 
     /** Table for Amp Modulator */
     private void makeAmTable() {
-        
+
         for (int i = 0; i < AM_PG_WIDTH; i++) {
             amTable[i] = (int) (AM_DEPTH / 2 / DB_STEP * (1.0 + Math.sin(2.0 * Math.PI * i / PM_PG_WIDTH)));
         }

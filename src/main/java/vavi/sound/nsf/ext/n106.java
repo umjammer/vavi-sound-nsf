@@ -26,9 +26,9 @@ import vavi.sound.nsf.Writer;
 
 
 /**
- * n106. 
+ * n106.
  *
- * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
 public class n106 extends ExpSound {
@@ -45,9 +45,9 @@ public class n106 extends ExpSound {
 
     private Reader namco4800Reader = new Reader() {
         public int exec(int address, int dataBus) {
-    
+
             byte ret = iram[dopol & 0x7f];
-    
+
             /* Maybe I should call DoNamcoSoundHQ() here? */
             if ((dopol & 0x80) != 0) {
                 dopol = (byte) ((dopol & 0x80) | ((dopol + 1) & 0x7f));
@@ -83,7 +83,7 @@ public class n106 extends ExpSound {
     private Writer mapper19Writer = new Writer() {
         public void exec(int address, int value) {
             address &= 0xf800;
-    
+
             switch (address) {
             case 0x4800:
                 if ((dopol & 0x40) != 0) {
@@ -91,11 +91,11 @@ public class n106 extends ExpSound {
                     fixCache(dopol, value);
                 }
                 iram[dopol & 0x7f] = (byte) value;
-    
+
                 if ((dopol & 0x80) != 0)
                     dopol = (byte) ((dopol & 0x80) | ((dopol + 1) & 0x7f));
                 break;
-    
+
             case 0xf800:
                 dopol = (byte) value;
                 break;
@@ -153,7 +153,7 @@ public class n106 extends ExpSound {
                 // V = timestamp - CVBC;
                 for (V = cvbc; V < timestamp; V++) {
                 // for(;V;V--)
-                
+
                     gapu.waveHi[WaveHi] += duff2;
                     if (vco == 0) {
                         PlayIndex += freq;
