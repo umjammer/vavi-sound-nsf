@@ -1,4 +1,4 @@
-package vavi.sound.nsf;
+package vavi.sound.nsf.festalon;
 
 import vavi.util.Debug;
 
@@ -38,9 +38,16 @@ class NesCart {
         Page(byte[] page, int pagePointer) {
             this.page = page;
             this.pagePointer = pagePointer;
+//Debug.printf("Page: %04X, %04X\n", page.length, pagePointer);
         }
         public String toString() {
             return page + ", " + pagePointer + ", " + prgSize + ", " + prgIsRAM;
+        }
+        public byte read(int address) {
+            return page[address + pagePointer];
+        }
+        public void write(int address, byte value) {
+            page[address + pagePointer] = value;
         }
     }
 
@@ -52,31 +59,32 @@ class NesCart {
     /** */
     private final void setPagePtr(int s, int address, byte[] p, int pP, boolean ram) {
         int addressBase = address >> 11;
-//Debug.println(String.format("setPagePtr: %04X, %04X, %s\n", address, addressBase, p));
+//Debug.printf("setPagePtr: %04X, %04X, %s\n", address, addressBase, p);
 //new Exception("*** DUMMY ***").printStackTrace();
 
         if (p != null) {
             for (int i = 0; i < (s >> 1); i++) {
+//Debug.printf("0: %04X, %04X\n", pP, address);
                 pages[addressBase + i] = new Page(p, pP - address);
                 pages[addressBase + i].prgIsRAM = ram;
-//Debug.println(String.format("1: page: %04X, %s\n", addressBase + i, pages[addressBase + i]));
+Debug.printf("1: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
             }
         } else {
             for (int i = 0; i < (s >> 1); i++) {
                 pages[addressBase + i] = new Page(new byte[0x10000], 0);
                 pages[addressBase + i].prgIsRAM = false;
-//Debug.println(String.format("2: page: %04X, %s\n", addressBase + i, pages[addressBase + i]));
+Debug.printf("3: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
             }
         }
     }
 
     /** */
-//    private byte[] nothing = new byte[8192];
+    private byte[] nothing = new byte[8192];
 
     /** */
     NesCart() {
         for (int i = 0; i < 32; i++) {
-            pages[i] = new Page(new byte[0x10000], 0);
+            pages[i] = new Page(nothing, -2048 * i);
             pages[i].prgPointer = null;
             pages[i].prgSize = 0;
         }
@@ -99,8 +107,8 @@ class NesCart {
     /** */
     Reader cartReader = new Reader() {
         public int exec(int address, int dataBus) {
-//Debug.println(String.format("exec: %04X, %s\n", address >> 11, pages[address >> 11].page));
-            return pages[address >> 11].page[address];
+//Debug.printf("cart.read: %04X, %04X, %04X\n", address >> 11, address, pages[address >> 11].page.length);
+            return pages[address >> 11].read(address);
         }
     };
 
@@ -108,7 +116,7 @@ class NesCart {
     Writer cartWriter = new Writer() {
         public void exec(int address, int value) {
             if (pages[address >> 11].prgIsRAM && pages[address >> 11] != null) {
-                pages[address >> 11].page[address] = (byte) value;
+                pages[address >> 11].write(address, (byte) value);
             }
         }
     };
@@ -119,7 +127,7 @@ class NesCart {
             if (pages[address >> 11] == null) {
                 return (byte) dataBus;
             }
-            return pages[address >> 11].page[address];
+            return pages[address >> 11].read(address);
         }
     };
 

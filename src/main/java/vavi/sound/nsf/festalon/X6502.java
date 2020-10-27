@@ -1,4 +1,4 @@
-package vavi.sound.nsf;
+package vavi.sound.nsf.festalon;
 
 import vavi.util.Debug;
 import vavi.util.StringUtil;

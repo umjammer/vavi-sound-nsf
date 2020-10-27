@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.sound.nsf;
+package vavi.sound.nsf.festalon;
 
 import vavi.sound.fidlib.FidFilter;
 import vavi.sound.fir.Constants;
@@ -199,28 +199,28 @@ if (fid != null) {
         {
 //            SRC_DATA doot;
 //            int error;
-
+//
 //            doot.data_in = boobuf;
 //            doot.data_out = out;
 //            doot.input_frames = count;
 //            doot.output_frames = maxoutlen;
 //            doot.src_ratio = lrhfactor;
 //            doot.end_of_input = 0;
-
+//
 //            if ((error = src_process(lrh, doot))) {
-                // printf("Eeeek: %s, %d, %d\n",src_strerror(error),boobuf,out);
-                // exit(1);
+//                 System.err.printf("Eeeek: %s, %d, %d\n", src_strerror(error), boobuf, out);
+//                 exit(1);
 //            }
-
-            // if(doot.input_frames_used - count) exit(1);
-            // printf("Oops: %d\n\n", doot.input_frames_used - count);
-
-            // printf("%d\n",doot.output_frames_gen);
-//            SexyFilter(out, out, doot.output_frames_gen);
+//
+//             if(doot.input_frames_used - count) exit(1);
+//             printf("Oops: %d\n\n", doot.input_frames_used - count);
+//
+//             printf("%d\n",doot.output_frames_gen);
+//            execSexyFilter(out, out, doot.output_frames_gen);
 //            return doot.output_frames_gen;
         }
 
-        return 0;
+        return count;
     }
 }
 

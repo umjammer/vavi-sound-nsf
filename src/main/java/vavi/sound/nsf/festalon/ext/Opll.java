@@ -4,7 +4,7 @@
  * if the origin of this software is not misrepresented.
  */
 
-package vavi.sound.nsf.ext;
+package vavi.sound.nsf.festalon.ext;
 
 
 /**

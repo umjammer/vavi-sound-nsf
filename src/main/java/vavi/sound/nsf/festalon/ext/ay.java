@@ -17,11 +17,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package vavi.sound.nsf.ext;
+package vavi.sound.nsf.festalon.ext;
 
-import vavi.sound.nsf.ExpSound;
-import vavi.sound.nsf.NesApu;
-import vavi.sound.nsf.Writer;
+import vavi.sound.nsf.festalon.ExpSound;
+import vavi.sound.nsf.festalon.NesApu;
+import vavi.sound.nsf.festalon.Writer;
 
 
 /**

@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.sound.nsf;
+package vavi.sound.nsf.festalon;
 
 
 /**

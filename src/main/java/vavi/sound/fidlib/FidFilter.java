@@ -46,7 +46,7 @@ import java.util.Scanner;
  *
  * <pre>
  *    LpBu4/20.4    Lowpass butterworth, 4th order, -3.01dB at 20.4Hz
- *    BpBu2/3-4 Bandpass butterworth, 2nd order, from 3 to 4Hz
+ *    BpBu2/3-4     Bandpass butterworth, 2nd order, from 3 to 4Hz
  *    BpBu2/=3-4    Same filter, but adjusted exactly to the range given
  *    BsRe/1000/10  Bandstop resonator, Q=1000, frequency 10Hz
  * </pre>
@@ -1148,7 +1148,7 @@ public abstract class FidFilter {
         n_head = 1 + n_pol + n_zer; // worst case: gain + 2-element IIR/FIR
 //      n_val = 1 + 2 * (n_pol + n_zer); // for each pole/zero
 
-        rv = new ArrayList<FidFilter>(n_head);
+        rv = new ArrayList<>(n_head);
         ff = Factory.newInstance();
         ff.type = 'F';
         ff.len = 1;
@@ -1360,7 +1360,7 @@ public abstract class FidFilter {
      * return value
      */
     private List<FidFilter> stack_filter(int order, int n_head, int n_val, Object... ap) {
-        List<FidFilter> rv = new ArrayList<FidFilter>(n_head * order);
+        List<FidFilter> rv = new ArrayList<>(n_head * order);
         FidFilter p;
 //      FidFilter q;
         int a, b, len;
@@ -1838,7 +1838,7 @@ public abstract class FidFilter {
             for (a = 0; a <= max * 2; a++) {
                 ff.val[a] *= adj;
             }
-            List<FidFilter> rv = new ArrayList<FidFilter>();
+            List<FidFilter> rv = new ArrayList<>();
             rv.add(ff);
             return rv;
         }
@@ -1865,7 +1865,7 @@ public abstract class FidFilter {
             for (a = 0; a <= max * 2; a++) {
                 ff.val[a] *= adj;
             }
-            List<FidFilter> rv = new ArrayList<FidFilter>();
+            List<FidFilter> rv = new ArrayList<>();
             rv.add(ff);
             return rv;
         }
@@ -1892,7 +1892,7 @@ public abstract class FidFilter {
             for (a = 0; a <= max * 2; a++) {
                 ff.val[a] *= adj;
             }
-            List<FidFilter> rv = new ArrayList<FidFilter>();
+            List<FidFilter> rv = new ArrayList<>();
             rv.add(ff);
             return rv;
         }
@@ -1919,7 +1919,7 @@ public abstract class FidFilter {
             for (a = 0; a <= max * 2; a++) {
                 ff.val[a] *= adj;
             }
-            List<FidFilter> rv = new ArrayList<FidFilter>();
+            List<FidFilter> rv = new ArrayList<>();
             rv.add(ff);
             return rv;
         }
@@ -2576,7 +2576,7 @@ public abstract class FidFilter {
         }
 
         // Setup the output array
-        rv = new ArrayList<FidFilter>(2);
+        rv = new ArrayList<>(2);
         FidFilter ff = Factory.newInstance();
         ff.type = 'I';
         ff.len = m_iir;
@@ -2861,7 +2861,7 @@ public abstract class FidFilter {
             dp += len;
         }
 
-        rv = new ArrayList<FidFilter>(n_head);
+        rv = new ArrayList<>(n_head);
 
         // scan through to fill in FidFilter
         for (int dp = 0; arr[dp] != 0;) {
@@ -2908,7 +2908,7 @@ public abstract class FidFilter {
             }
         }
 
-        rv = new ArrayList<FidFilter>(len);
+        rv = new ArrayList<>(len);
         dst = rv;
 
         apP = 0;
@@ -2999,12 +2999,12 @@ public abstract class FidFilter {
      * @throws IllegalArgumentException
      */
     public FidFilter[] fid_parse(double rate, String[] pp) {
-        byte[] buf = new byte[128];
+        byte[] buf = new byte[INIT_LEN];
         int p = 0;
         int rew;
 
         FidFilter curr;
-        List<FidFilter> result = new ArrayList<FidFilter>();
+        List<FidFilter> result = new ArrayList<>();
 //      int xtra = 0;
         int typ = -1; // First time through
         double val;

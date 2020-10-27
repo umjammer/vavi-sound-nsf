@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package vavi.sound.nsf;
+package vavi.sound.nsf.festalon;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,12 +27,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
-import vavi.sound.nsf.ext.ay;
-import vavi.sound.nsf.ext.fds;
-import vavi.sound.nsf.ext.mmc5;
-import vavi.sound.nsf.ext.n106;
-import vavi.sound.nsf.ext.vrc6;
-import vavi.sound.nsf.ext.vrc7;
+import vavi.sound.nsf.festalon.ext.ay;
+import vavi.sound.nsf.festalon.ext.fds;
+import vavi.sound.nsf.festalon.ext.mmc5;
+import vavi.sound.nsf.festalon.ext.n106;
+import vavi.sound.nsf.festalon.ext.vrc6;
+import vavi.sound.nsf.festalon.ext.vrc7;
+import vavi.util.Debug;
 
 
 /**
@@ -148,6 +149,51 @@ class Nsf extends Plugin {
             dis.readFully(h.expansion, 0, 4);
             return h;
         }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Header [id=");
+            builder.append(Arrays.toString(id));
+            builder.append(", version=");
+            builder.append(version);
+            builder.append(", totalSongs=");
+            builder.append(totalSongs);
+            builder.append(", startingSong=");
+            builder.append(startingSong);
+            builder.append(", loadAddressLow=");
+            builder.append(loadAddressLow);
+            builder.append(", loadAddressHigh=");
+            builder.append(loadAddressHigh);
+            builder.append(", initAddressLow=");
+            builder.append(initAddressLow);
+            builder.append(", initAddressHigh=");
+            builder.append(initAddressHigh);
+            builder.append(", playAddressLow=");
+            builder.append(playAddressLow);
+            builder.append(", playAddressHigh=");
+            builder.append(playAddressHigh);
+            builder.append(", gameName=");
+            builder.append(Arrays.toString(gameName));
+            builder.append(", artist=");
+            builder.append(Arrays.toString(artist));
+            builder.append(", copyright=");
+            builder.append(Arrays.toString(copyright));
+            builder.append(", ntscSpeed=");
+            builder.append(Arrays.toString(ntscSpeed));
+            builder.append(", bankSwitch=");
+            builder.append(Arrays.toString(bankSwitch));
+            builder.append(", palSpeed=");
+            builder.append(Arrays.toString(palSpeed));
+            builder.append(", videoSystem=");
+            builder.append(videoSystem);
+            builder.append(", soundChip=");
+            builder.append(soundChip);
+            builder.append(", expansion=");
+            builder.append(Arrays.toString(expansion));
+            builder.append("]");
+            return builder.toString();
+        }
     }
 
     /** */
@@ -188,7 +234,7 @@ class Nsf extends Plugin {
 
         nfe.outChannels = 1;
 
-        nfe = new Nsf();
+//        nfe = new Nsf();
 
         if (size >= 5 && new String(buf, 0, 5).equals("NESM" + (char) 0x1a)) {
             try {
@@ -206,6 +252,8 @@ class Nsf extends Plugin {
             nfe.close();
             throw new IllegalArgumentException("unknown");
         }
+
+        nfe.init();
 
         return nfe;
     }
@@ -264,12 +312,16 @@ class Nsf extends Plugin {
     /** */
     private void loadNSF(byte[] buf, int size, int info_only) throws IOException {
         Header nsfHeader = Header.readFrom(new ByteArrayInputStream(buf));
+Debug.println(nsfHeader);
 
         nsfHeader.gameName[31] = nsfHeader.artist[31] = nsfHeader.copyright[31] = 0;
 
         gameName = new String(nsfHeader.gameName);
+Debug.printf("gameName: %s\n", gameName);
         artist = new String(nsfHeader.artist);
+Debug.printf("artist: %s\n", artist);
         copyright = new String(nsfHeader.copyright);
+Debug.printf("copyright: %s\n", copyright);
 
         loadAddr = nsfHeader.loadAddressLow;
         loadAddr |= nsfHeader.loadAddressHigh << 8;
@@ -277,17 +329,22 @@ class Nsf extends Plugin {
         if (loadAddr < 0x6000) { // A buggy NSF...
             loadAddr += 0x8000;
         }
+Debug.printf("loadAddr: %04x\n", loadAddr);
 
         initAddr = nsfHeader.initAddressLow;
         initAddr |= nsfHeader.initAddressHigh << 8;
+Debug.printf("initAddr: %04x\n", initAddr);
 
         playAddr = nsfHeader.playAddressLow;
         playAddr |= nsfHeader.playAddressHigh << 8;
+Debug.printf("playAddr: %04x\n", playAddr);
 
         nsfSize = size - 0x80;
+Debug.printf("nsfSize: %04x\n", nsfSize);
 
         nsfMaxBank = (nsfSize + (loadAddr & 0xfff) + 4095) / 4096;
         nsfMaxBank = uppow2(nsfMaxBank);
+Debug.printf("nsfMaxBank: %04x\n", nsfMaxBank);
 
         if (info_only == 0) {
             nsfData = new byte[nsfMaxBank * 4096];
@@ -299,11 +356,13 @@ class Nsf extends Plugin {
             System.arraycopy(buf, 0, nsfData, nsfRawDataP, nsfSize);
 
             nsfMaxBank--;
+Debug.println("here 1");
         } else if (info_only == FESTAGFI_TAGS_DATA) {
             nsfData = new byte[nsfSize];
             nsfRawData = nsfData;
             nsfRawDataSize = nsfSize;
             System.arraycopy(buf, 0, nsfData, 0, nsfSize);
+Debug.println("here 2");
         }
 
         videoSystem = nsfHeader.videoSystem;
@@ -344,12 +403,11 @@ class Nsf extends Plugin {
         return nfe;
     }
 
-    /*
+    /**
      * EXPSOUND structure is set by NSF*_Init(), NESAPU structure is already set
      * when these functions are called.
      */
-
-    public Nsf() {
+    private void init() {
 
         if ((videoSystem & 0x3) == 0) {
             pal = false;
@@ -384,7 +442,7 @@ class Nsf extends Plugin {
             Arrays.fill(exWRam, 0, 32768 + 8192, (byte) 0x00);
             cpu.setWriter(0x6000, 0xdfff, cart.cartWriter, cart);
             cpu.setReader(0x6000, 0xffff, cart.cartReader, cart);
-//Debug.println("here 1");
+Debug.println("here 1");
         } else {
             Arrays.fill(exWRam, 0, 8192, (byte) 0x00);
             cpu.setReader(0x6000, 0x7fff, cart.cartReader, cart);
@@ -395,7 +453,7 @@ class Nsf extends Plugin {
 
             cart.setPrg8r(1, 0x6000, 0);
             cpu.setReader(0x8000, 0xffff, cart.cartReader, cart);
-//Debug.println("here 2 *");
+Debug.println("here 2 *");
         }
 
         bsOn = 0;
@@ -512,6 +570,7 @@ class Nsf extends Plugin {
         // routine.
         if (cpu.pc == 0x3800 || songReload != 0) {
             if (songReload != 0) {
+Debug.println("clri");
                 clri();
             }
 
@@ -858,16 +917,16 @@ e.printStackTrace();
 
     /** */
     public void setSound(int rate, int quality) {
-        if (apu.filter != null) {
-            apu.filter = null;
-        }
+//        if (apu.filter != null) {
+//            apu.filter = null;
+//        }
         apu.filter = new Filter(rate, cpu.pal ? X6502.PAL_CPU : X6502.NTSC_CPU, cpu.pal, quality);
 
         apu.waveFinalLen = rate / (cpu.pal ? 50 : 60) * 2; // * 2 for extra
         // room
-        if (apu.waveFinal != null) {
-            apu.waveFinal = null;
-        }
+//        if (apu.waveFinal != null) {
+//            apu.waveFinal = null;
+//        }
         apu.waveFinal = new float[apu.waveFinalLen];
     }
 }

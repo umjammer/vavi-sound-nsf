@@ -866,7 +866,7 @@ class JitFidFilter extends FidFilter {
      * use for cryptographic purposes.
      *
      * @param k the key (the unaligned variable-length array of bytes)
-     * @param len the length of the key, counting by bytes
+     * @param length the length of the key, counting by bytes
      * @param initval the previous hash, or an arbitrary value. can be any
      *        4-byte value
      * @return a 32-bit value. Every bit of the key affects every bit of the
