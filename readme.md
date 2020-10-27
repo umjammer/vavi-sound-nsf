@@ -1,19 +1,12 @@
-# festalon4j
+# vavi-sound-nsf
 
-nsf を提供します．
-
- * 000/nsf
+play nsf as `javax.sound.sampled.spi`
 
 # TODO
 
- * https://github.com/orangelando/nsf
+ * improve decoding speed
 
-# License
+## Originals
 
- * original [Festalon](https://github.com/ahefner/festalon)
-
-> [GNU General Public License (GPL)](http://www.gnu.org/licenses/gpl.html)
-
- * http://uazu.net/fidlib/
-
-> This is a C library, released as free software under the GNU [LGPL](http://www.gnu.org/licenses/lgpl.html)
+  * [nsf](https://github.com/orangelando/nsf)
+  * [Festalon](https://github.com/ahefner/festalon)
