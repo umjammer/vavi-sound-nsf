@@ -67,10 +67,7 @@ System.err.println(event.getType());
             }
         });
         clip.open(audioInputStream);
-//FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-//double gain = .2d; // number between 0 and 1 (loudest)
-//float dB = (float) (Math.log(gain) / Math.log(10.0) * 20.0);
-//gainControl.setValue(dB);
+//volume(line, .2d);
         clip.start();
         countDownLatch.await();
         clip.close();
@@ -101,10 +98,7 @@ Debug.println("buffer size: " + line.getBufferSize());
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-//FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-//double gain = .2d; // number between 0 and 1 (loudest)
-//float dB = (float) (Math.log(gain) / Math.log(10.0) * 20.0);
-//gainControl.setValue(dB);
+//volume(line, .2d);
         line.start();
         int r = 0;
         while (true) {
@@ -143,10 +137,7 @@ Debug.println(event.getType());
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-//FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-//double gain = .2d; // number between 0 and 1 (loudest)
-//float dB = (float) (Math.log(gain) / Math.log(10.0) * 20.0);
-//gainControl.setValue(dB);
+//volume(line, .2d);
         line.start();
         int r = 0;
         while (true) {
