@@ -16,6 +16,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.logging.Level;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -30,7 +31,15 @@ import vavi.util.Debug;
 
 /**
  * NSFAudioInputStream.
- *
+ * <pre>
+ *  property
+ *   disableChannels = [12tnq]*
+ *   maxPlaySecs = number
+ *   maxSilenceSecs = number
+ *   splitChannels = boolean
+ *   disableBandPass = boolean
+ *   track = number
+ * </pre>
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2020/10/27 umjammer initial version <br>
  */
@@ -58,7 +67,13 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
 
         private Map<String, Object> props;
 
-        private ExecutorService executor = Executors.newSingleThreadExecutor();
+        private Thread maxThreadFactory(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setPriority(Thread.MAX_PRIORITY);
+            return thread;
+        }
+
+        private ExecutorService executor = Executors.newSingleThreadExecutor(this::maxThreadFactory);
 
         /** */
         public NSFOutputEngine(InputStream in, Map<String, Object> props) throws IOException {
@@ -108,7 +123,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
 
             NSFRenderer renderer = new NSFRenderer(nes, maxPlaySecs, maxSilenceSecs);
 
-            if (props.containsKey("splitChannels") && (boolean) props.get("disableBandPass")) {
+            if (props.containsKey("splitChannels") && (boolean) props.get("splitChannels")) {
                 renderer.splitChannels();
             }
 
@@ -138,7 +153,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
                         @Override
                         public void finish() {
                             blockingDequeThread.interrupt();
-Debug.println("sink finish");
+Debug.println(Level.FINE, "sink finish");
                             try {
                                 out.close(); // TODO wait write finished
                             } catch (IOException e) {
@@ -183,7 +198,7 @@ Debug.println("BlockingDeque#take() interrupted");
 
         /** */
         public void finish() throws IOException {
-Debug.println("engine finish");
+Debug.println(Level.FINE, "engine finish");
             executor.shutdown();
         }
     }
