@@ -7,20 +7,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>vavi</groupId>
-  <artifactId>festalon4j</artifactId>
-  <version>0.0.0</version>
+  <artifactId>vavi-sound-nsf</artifactId>
+  <version>0.0.1</version>
 
   <name>festalon4j</name>
   <organization>
     <name></name>
   </organization>
-  <url>https://github.com/umjammer/vavi-commons</url>
+  <url>https://github.com/umjammer/vavi-sound-nsf</url>
   <description></description>
   <scm>
-    <url>https://github.com/umjammer/festalon4j</url>
+    <url>https://github.com/umjammer/vavi-sound-nsf</url>
   </scm>
   <issueManagement>
-    <url>https://github.com/umjammer/festalon4j/issues</url>
+    <url>https://github.com/umjammer/vavi-sound-nsf/issues</url>
   </issueManagement>
 
   <build>
@@ -43,31 +43,40 @@
     </repository>
   </repositories>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.8.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
+      <groupId>com.github.orangelando</groupId>
+      <artifactId>nsf</artifactId>
+      <version>master-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.github.umjammer</groupId>
-      <artifactId>vavi-commons</artifactId>
-      <version>1.1.4</version>
+      <artifactId>vavi-sound</artifactId>
+      <version>1.0.12</version>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.3.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.3.0</version>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>nsf</groupId>
-      <artifactId>nsf</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
   </dependencies>
-
 </project>

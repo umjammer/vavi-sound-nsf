@@ -16,7 +16,6 @@ import java.util.concurrent.CountDownLatch;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.SourceDataLine;
@@ -28,6 +27,7 @@ import vavi.util.Debug;
 import vavi.util.StringUtil;
 
 import static org.junit.jupiter.api.Assertions.fail;
+import static vavi.sound.SoundUtil.volume;
 
 
 /**
@@ -48,7 +48,9 @@ class NsfTest {
 
     /** */
     public static void main(String[] args) throws Exception {
-        File file = new File(args[0]);
+//        String fn = args[0];
+        String fn = "src/test/resources/smb1.nsf";
+        File file = new File(fn);
         byte[] buffer = new byte[(int) file.length()];
         InputStream is = new FileInputStream(file);
         int l = 0;
@@ -77,10 +79,7 @@ Debug.println("nsf: " + StringUtil.paramString(nsf));
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
         SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
         line.open(audioFormat);
-FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-double gain = .1d; // number between 0 and 1 (loudest)
-float dB = (float) (Math.log(gain) / Math.log(10.0) * 20.0);
-gainControl.setValue(dB);
+        volume(line, .2d);
         line.addLineListener(new LineListener() {
             public void update(LineEvent ev) {
                 if (LineEvent.Type.STOP == ev.getType()) {

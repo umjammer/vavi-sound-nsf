@@ -115,7 +115,7 @@ public final class NES {
         numInstrs.set(0);
         numCycles.set(0);
 
-        while( cpu.PC != stopAddr) {
+        while (cpu.PC != stopAddr) {
             numCycles.addAndGet(cpu.step());
             numInstrs.incrementAndGet();
         }
