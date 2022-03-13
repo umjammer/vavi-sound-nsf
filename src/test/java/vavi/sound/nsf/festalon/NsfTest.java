@@ -48,7 +48,9 @@ class NsfTest {
 
     /** */
     public static void main(String[] args) throws Exception {
-        File file = new File(args[0]);
+//        String fn = args[0];
+        String fn = "src/test/resources/smb1.nsf";
+        File file = new File(fn);
         byte[] buffer = new byte[(int) file.length()];
         InputStream is = new FileInputStream(file);
         int l = 0;

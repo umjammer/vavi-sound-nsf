@@ -33,7 +33,7 @@ import vavi.util.Debug;
  */
 public class Test1 {
 
-    static final String inFile = "tmp/smb1.nsf";
+    static final String inFile = "src/test/resources/smb1.nsf";
 
     /**
      * @param args

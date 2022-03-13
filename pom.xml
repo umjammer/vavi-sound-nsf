@@ -43,7 +43,23 @@
     </repository>
   </repositories>
 
+  <dependencyManagement>
   <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.8.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+    <dependency>
+      <groupId>com.github.orangelando</groupId>
+      <artifactId>nsf</artifactId>
+      <version>master-SNAPSHOT</version>
+    </dependency>
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>vavi-commons</artifactId>
@@ -63,11 +79,6 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>nsf</groupId>
-      <artifactId>nsf</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 
 </project>
