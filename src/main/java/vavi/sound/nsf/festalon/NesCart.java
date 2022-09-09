@@ -1,5 +1,7 @@
 package vavi.sound.nsf.festalon;
 
+import java.util.Arrays;
+
 import vavi.util.Debug;
 
 
@@ -11,7 +13,7 @@ import vavi.util.Debug;
  */
 class NesCart {
     /** */
-    private class Page {
+    private static class Page {
         /** */
         byte[] page;
         /** */
@@ -41,7 +43,7 @@ class NesCart {
 //Debug.printf("Page: %04X, %04X\n", page.length, pagePointer);
         }
         public String toString() {
-            return page + ", " + pagePointer + ", " + prgSize + ", " + prgIsRAM;
+            return Arrays.toString(page) + ", " + pagePointer + ", " + prgSize + ", " + prgIsRAM;
         }
         public byte read(int address) {
             return page[address + pagePointer];
@@ -57,7 +59,7 @@ class NesCart {
     // 16 are (sort of) reserved for UNIF/iNES and 16 to map other stuff.
 
     /** */
-    private final void setPagePtr(int s, int address, byte[] p, int pP, boolean ram) {
+    private void setPagePtr(int s, int address, byte[] p, int pP, boolean ram) {
         int addressBase = address >> 11;
 //Debug.printf("setPagePtr: %04X, %04X, %s\n", address, addressBase, p);
 //new Exception("*** DUMMY ***").printStackTrace();
@@ -105,30 +107,24 @@ Debug.printf("3: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i
     }
 
     /** */
-    Reader cartReader = new Reader() {
-        public int exec(int address, int dataBus) {
+    Reader cartReader = (address, dataBus) -> {
 //Debug.printf("cart.read: %04X, %04X, %04X\n", address >> 11, address, pages[address >> 11].page.length);
-            return pages[address >> 11].read(address);
+        return pages[address >> 11].read(address);
+    };
+
+    /** */
+    Writer cartWriter = (address, value) -> {
+        if (pages[address >> 11].prgIsRAM && pages[address >> 11] != null) {
+            pages[address >> 11].write(address, (byte) value);
         }
     };
 
     /** */
-    Writer cartWriter = new Writer() {
-        public void exec(int address, int value) {
-            if (pages[address >> 11].prgIsRAM && pages[address >> 11] != null) {
-                pages[address >> 11].write(address, (byte) value);
-            }
+    private Reader cartReaderOB = (address, dataBus) -> {
+        if (pages[address >> 11] == null) {
+            return (byte) dataBus;
         }
-    };
-
-    /** */
-    private Reader cartReaderOB = new Reader() {
-        public int exec(int address, int dataBus) {
-            if (pages[address >> 11] == null) {
-                return (byte) dataBus;
-            }
-            return pages[address >> 11].read(address);
-        }
+        return pages[address >> 11].read(address);
     };
 
     /** */

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.concurrent.CountDownLatch;
 
 import javax.sound.sampled.AudioFormat;
@@ -52,7 +53,7 @@ class NsfTest {
         String fn = "src/test/resources/smb1.nsf";
         File file = new File(fn);
         byte[] buffer = new byte[(int) file.length()];
-        InputStream is = new FileInputStream(file);
+        InputStream is = Files.newInputStream(file.toPath());
         int l = 0;
         while (l < buffer.length) {
             int r = is.read(buffer, l, buffer.length - l);
@@ -80,11 +81,9 @@ Debug.println("nsf: " + StringUtil.paramString(nsf));
         SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
         line.open(audioFormat);
         volume(line, .2d);
-        line.addLineListener(new LineListener() {
-            public void update(LineEvent ev) {
-                if (LineEvent.Type.STOP == ev.getType()) {
-                    cdl.countDown();
-                }
+        line.addLineListener(ev -> {
+            if (LineEvent.Type.STOP == ev.getType()) {
+                cdl.countDown();
             }
         });
 //        line.start();

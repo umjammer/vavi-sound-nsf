@@ -104,7 +104,7 @@ class Opll {
 //  };
 
     /** voice data */
-    private class Patch {
+    private static class Patch {
         int tl, fb, eg, ml, ar, dr, sl, rr, kr, kl, am, pm, wf;
     }
 
@@ -227,7 +227,7 @@ class Opll {
         /**
          * Calc Parameters
          */
-        private final int calcEgDPhase() {
+        private int calcEgDPhase() {
 
             switch (this.eg_mode) {
             case ATTACK:
@@ -385,7 +385,7 @@ class Opll {
     }
 
     /* Mask */
-    private static final int maskCh(int x) {
+    private static int maskCh(int x) {
         return (1 << (x));
     }
 
@@ -481,23 +481,23 @@ class Opll {
         { 0x21, 0x62, 0x0e, 0x00, 0xa1, 0xa0, 0x44, 0x17 },
     };
 
-    private static final int eg2db(int d) {
+    private static int eg2db(int d) {
         return (d) * (int) (EG_STEP / DB_STEP);
     }
 
-    private static final int tl2eg(int d) {
+    private static int tl2eg(int d) {
         return ((d) * (int) (TL_STEP / EG_STEP));
     };
 
-    private static final int sl2eg(int d) {
+    private static int sl2eg(int d) {
         return ((d) * (int) (SL_STEP / EG_STEP));
     };
 
-    private static final int dbPos(int x) {
+    private static int dbPos(int x) {
         return (int) ((x) / DB_STEP);
     }
 
-    private static final int dbNeg(int x) {
+    private static int dbNeg(int x) {
         return (int) (DB_MUTE + DB_MUTE + (x) / DB_STEP);
     }
 
@@ -528,34 +528,34 @@ class Opll {
     private static final double AM_DEPTH = 2.4;
 
     /* Cut the lower b bit(s) off. */
-    private static final int highBits(int c, int b) {
+    private static int highBits(int c, int b) {
         return ((c) >> (b));
     }
 
     /* Leave the lower b bit(s). */
-    private static final int lowBits(int c, int b) {
+    private static int lowBits(int c, int b) {
         return ((c) & ((1 << (b)) - 1));
     }
 
     /* Expand x which is s bits to d bits. */
-    private static final int expandBits(int x, int s, int d) {
+    private static int expandBits(int x, int s, int d) {
         return ((x) << ((d) - (s)));
     }
 
     /* Expand x which is s bits to d bits and fill expanded bits '1' */
-    private static final int expandBitsX(int x, int s, int d) {
+    private static int expandBitsX(int x, int s, int d) {
         return (((x) << ((d) - (s))) | ((1 << ((d) - (s))) - 1));
     }
 
-    private final Slot mod(int x) {
+    private Slot mod(int x) {
         return (slot[(x) << 1]);
     }
 
-    private final Slot car(int x) {
+    private Slot car(int x) {
         return (slot[((x) << 1) | 1]);
     }
 
-    private static final int bit(int s, int b) {
+    private static int bit(int s, int b) {
         return (((s) >> (b)) & 1);
     }
 
@@ -614,9 +614,8 @@ class Opll {
             fullSinTable[PG_WIDTH / 2 + i] = (short) (DB_MUTE + DB_MUTE + fullSinTable[i]);
         }
 
-        for (int i = 0; i < PG_WIDTH / 2; i++) {
-            halfSinTable[i] = fullSinTable[i];
-        }
+        System.arraycopy(fullSinTable, 0, halfSinTable, 0, PG_WIDTH / 2);
+
         for (int i = PG_WIDTH / 2; i < PG_WIDTH; i++) {
             halfSinTable[i] = fullSinTable[0];
         }
@@ -657,7 +656,7 @@ class Opll {
     }
 
     /** */
-    private static final double dB2(double d) {
+    private static double dB2(double d) {
         return ((d) * 2);
     }
 
@@ -836,7 +835,7 @@ class Opll {
      */
 
     /** Channel key on */
-    private final void keyOn(int i) {
+    private void keyOn(int i) {
         if (slotOnFlag[i * 2] == 0) {
             mod(i).slotOn();
         }
@@ -847,7 +846,7 @@ class Opll {
     }
 
     /** Channel key off */
-    private final void keyOff(int i) {
+    private void keyOff(int i) {
         if (slotOnFlag[i * 2 + 1] != 0) {
             car(i).slotOff();
         }
@@ -855,7 +854,7 @@ class Opll {
     }
 
     /** Set sustine parameter */
-    private final void setSustine(int c, int sustine) {
+    private void setSustine(int c, int sustine) {
         car(c).sustine = sustine;
         if (mod(c).type != 0) {
             mod(c).sustine = sustine;
@@ -863,24 +862,24 @@ class Opll {
     }
 
     /** Volume : 6bit ( Volume register << 2 ) */
-    final private void setVolume(int c, int volume) {
+    private void setVolume(int c, int volume) {
         car(c).volume = volume;
     }
 
     /** Set F-Number ( fnum : 9bit ) */
-    private final void setFNumber(int c, int fnum) {
+    private void setFNumber(int c, int fnum) {
         car(c).fnum = fnum;
         mod(c).fnum = fnum;
     }
 
     /** Set Block data (block : 3bit ) */
-    private final void setBlock(int c, int block) {
+    private void setBlock(int c, int block) {
         car(c).block = block;
         mod(c).block = block;
     }
 
     /** */
-    private final void updateKeyStatus() {
+    private void updateKeyStatus() {
         for (int ch = 0; ch < 6; ch++) {
             slotOnFlag[ch * 2] = slotOnFlag[ch * 2 + 1] = (hiFreq[ch]) & 0x10;
         }
@@ -972,7 +971,7 @@ class Opll {
      */
 
     /** Convert Amp(0 to EG_HEIGHT) to Phase(0 to 2PI). */
-    private static final int wave2_2pi(int e) {
+    private static int wave2_2pi(int e) {
         if ((SLOT_AMP_BITS - PG_BITS) > 0) {
             return ((e) >> (SLOT_AMP_BITS - PG_BITS));
         } else {
@@ -981,7 +980,7 @@ class Opll {
     }
 
     /** Convert Amp(0 to EG_HEIGHT) to Phase(0 to 4PI). */
-    private static final int wave2_4pi(int e) {
+    private static int wave2_4pi(int e) {
         if ((SLOT_AMP_BITS - PG_BITS - 1) == 0) {
             return (e);
         } else if ((SLOT_AMP_BITS - PG_BITS - 1) > 0) {
@@ -992,7 +991,7 @@ class Opll {
     }
 
     /** Convert Amp(0 to EG_HEIGHT) to Phase(0 to 8PI). */
-    private static final int wave2_8pi(int e) {
+    private static int wave2_8pi(int e) {
         if ((SLOT_AMP_BITS - PG_BITS - 2) == 0) {
             return (e);
         } else if ((SLOT_AMP_BITS - PG_BITS - 2) > 0) {
@@ -1011,7 +1010,7 @@ class Opll {
     }
 
     /** */
-    private static final int s2e(double d) {
+    private static int s2e(double d) {
         return (sl2eg((int) (d / SL_STEP)) << (EG_DP_BITS - EG_BITS));
     }
 
@@ -1024,7 +1023,7 @@ class Opll {
     };
 
     /** */
-    private final short calcInternal() {
+    private short calcInternal() {
         int inst = 0, out = 0;
 
         updateAmPm();

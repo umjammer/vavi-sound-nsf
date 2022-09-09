@@ -152,47 +152,46 @@ class Nsf extends Plugin {
 
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Header [id=");
-            builder.append(Arrays.toString(id));
-            builder.append(", version=");
-            builder.append(version);
-            builder.append(", totalSongs=");
-            builder.append(totalSongs);
-            builder.append(", startingSong=");
-            builder.append(startingSong);
-            builder.append(", loadAddressLow=");
-            builder.append(loadAddressLow);
-            builder.append(", loadAddressHigh=");
-            builder.append(loadAddressHigh);
-            builder.append(", initAddressLow=");
-            builder.append(initAddressLow);
-            builder.append(", initAddressHigh=");
-            builder.append(initAddressHigh);
-            builder.append(", playAddressLow=");
-            builder.append(playAddressLow);
-            builder.append(", playAddressHigh=");
-            builder.append(playAddressHigh);
-            builder.append(", gameName=");
-            builder.append(Arrays.toString(gameName));
-            builder.append(", artist=");
-            builder.append(Arrays.toString(artist));
-            builder.append(", copyright=");
-            builder.append(Arrays.toString(copyright));
-            builder.append(", ntscSpeed=");
-            builder.append(Arrays.toString(ntscSpeed));
-            builder.append(", bankSwitch=");
-            builder.append(Arrays.toString(bankSwitch));
-            builder.append(", palSpeed=");
-            builder.append(Arrays.toString(palSpeed));
-            builder.append(", videoSystem=");
-            builder.append(videoSystem);
-            builder.append(", soundChip=");
-            builder.append(soundChip);
-            builder.append(", expansion=");
-            builder.append(Arrays.toString(expansion));
-            builder.append("]");
-            return builder.toString();
+            String builder = "Header [id=" +
+                    Arrays.toString(id) +
+                    ", version=" +
+                    version +
+                    ", totalSongs=" +
+                    totalSongs +
+                    ", startingSong=" +
+                    startingSong +
+                    ", loadAddressLow=" +
+                    loadAddressLow +
+                    ", loadAddressHigh=" +
+                    loadAddressHigh +
+                    ", initAddressLow=" +
+                    initAddressLow +
+                    ", initAddressHigh=" +
+                    initAddressHigh +
+                    ", playAddressLow=" +
+                    playAddressLow +
+                    ", playAddressHigh=" +
+                    playAddressHigh +
+                    ", gameName=" +
+                    Arrays.toString(gameName) +
+                    ", artist=" +
+                    Arrays.toString(artist) +
+                    ", copyright=" +
+                    Arrays.toString(copyright) +
+                    ", ntscSpeed=" +
+                    Arrays.toString(ntscSpeed) +
+                    ", bankSwitch=" +
+                    Arrays.toString(bankSwitch) +
+                    ", palSpeed=" +
+                    Arrays.toString(palSpeed) +
+                    ", videoSystem=" +
+                    videoSystem +
+                    ", soundChip=" +
+                    soundChip +
+                    ", expansion=" +
+                    Arrays.toString(expansion) +
+                    "]";
+            return builder;
         }
     }
 
@@ -685,7 +684,7 @@ Debug.println("clri");
                     nsfSize = chunk_size;
                     nbuf = buf;
                 } else if (t.equals("BANK")) {
-                    dis.readFully(bankSwitch, size, (chunk_size > 8) ? 8 : chunk_size);
+                    dis.readFully(bankSwitch, size, Math.min(chunk_size, 8));
                 } else if (t.equals("NEND")) {
                     if (chunk_size == 0 && nbuf != null) {
                         nsfMaxBank = ((nsfSize + (loadAddr & 0xfff) + 4095) / 4096);
@@ -783,7 +782,7 @@ e.printStackTrace();
     }
 
     /** */
-    private final int uppow2(int n) {
+    private int uppow2(int n) {
         for (int x = 31; x >= 0; x--) {
             if ((n & (1 << x)) != 0) {
                 if ((1 << x) != n) {

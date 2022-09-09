@@ -56,7 +56,7 @@ public final class NSFRenderer {
 
         this.nes = Objects.requireNonNull(nes);
 
-        this.maxSystemCycles = SYSTEM_CYCLES_PER_SEC*maxPlaySecs;
+        this.maxSystemCycles = (long) SYSTEM_CYCLES_PER_SEC * maxPlaySecs;
         this.fadeOutStartCycle = this.maxSystemCycles - SYSTEM_CYCLES_PER_SEC; //1 second fade out
         this.disableFadeOut = this.fadeOutStartCycle <= SYSTEM_CYCLES_PER_SEC; //do not fade out if max play is <= 1 second.
         this.silenceDetector = new SilenceDetector(SYSTEM_CYCLES_PER_SEC * maxSilenceSecs);

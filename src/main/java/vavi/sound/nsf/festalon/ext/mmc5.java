@@ -47,41 +47,29 @@ public class mmc5 extends ExpSound {
     private int disabled;
     private NesApu gapu;
 
-    private Writer mapper5Writer = new Writer() {
-        public void exec(int address, int value) {
-            switch (address) {
-            case 0x5205:
-                mul[0] = (byte) value;
-                break;
-            case 0x5206:
-                mul[1] = (byte) value;
-                break;
-            }
+    private Writer mapper5Writer = (address, value) -> {
+        switch (address) {
+        case 0x5205:
+            mul[0] = (byte) value;
+            break;
+        case 0x5206:
+            mul[1] = (byte) value;
+            break;
         }
     };
 
-    private Writer exRamWriter = new Writer() {
-        public void exec(int address, int value) {
-            exRam[address & 0x3ff] = (byte) value;
-        }
-    };
+    private Writer exRamWriter = (address, value) -> exRam[address & 0x3ff] = (byte) value;
 
-    private Reader exRamReader = new Reader() {
-        public int exec(int address, int dataBus) {
-            return exRam[address & 0x3ff];
-        }
-    };
+    private Reader exRamReader = (address, dataBus) -> exRam[address & 0x3ff];
 
-    private Reader reader = new Reader() {
-        public int exec(int address, int dataBus) {
-            switch (address) {
-            case 0x5205:
-                return (mul[0] * mul[1]);
-            case 0x5206:
-                return ((mul[0] * mul[1]) >> 8);
-            }
-            return dataBus;
+    private Reader reader = (address, dataBus) -> {
+        switch (address) {
+        case 0x5205:
+            return (mul[0] * mul[1]);
+        case 0x5206:
+            return ((mul[0] * mul[1]) >> 8);
         }
+        return dataBus;
     };
 
     private void do5PCMHQ() {
