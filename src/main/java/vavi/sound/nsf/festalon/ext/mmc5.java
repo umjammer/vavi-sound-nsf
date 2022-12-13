@@ -126,7 +126,7 @@ public class mmc5 extends ExpSound {
     };
 
     private void do5SQHQ(int p) {
-        final int[] tal = {
+        int[] tal = {
             1, 2, 4, 6
         };
         int V, amp, rthresh, wl;

@@ -2035,7 +2035,7 @@ public abstract class FidFilter {
      * (causing an error if they are omitted from the 'spec').
      */
     private static class Spec {
-        final int MAXARG = 10;
+        static final int MAXARG = 10;
         String spec;
         double in_f0, in_f1;
         int in_adj;
@@ -2430,7 +2430,7 @@ public abstract class FidFilter {
         double gain = 1.0;
         double[] iir, fir;
         double iir_adj = 0;
-        final double[] const_one = { 1 };
+        double[] const_one = { 1 };
         int n_iir, n_fir;
         int iir_cbm, fir_cbm;
         int coefP = 0;
@@ -2985,7 +2985,7 @@ public abstract class FidFilter {
     }
 
     /** */
-    private final int INIT_LEN = 128;
+    private static final int INIT_LEN = 128;
 
     /**
      * Parse an entire filter specification, perhaps consisting of several FIR, IIR

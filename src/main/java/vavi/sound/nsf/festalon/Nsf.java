@@ -139,10 +139,10 @@ class Nsf extends Plugin {
             dis.readFully(h.gameName, 0, 32);
             dis.readFully(h.artist, 0, 32);
             dis.readFully(h.copyright, 0, 32);
-            /** Unused */
+            /* Unused */
             dis.readFully(h.ntscSpeed, 0, 2);
             dis.readFully(h.bankSwitch, 0, 8);
-            /** Unused */
+            /* Unused */
             dis.readFully(h.palSpeed, 0, 2);
             h.videoSystem = dis.readUnsignedByte();
             h.soundChip = dis.readUnsignedByte();

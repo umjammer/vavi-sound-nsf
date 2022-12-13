@@ -106,7 +106,7 @@ Debug.println("buffer size: " + line.getBufferSize());
         byte[] buf = new byte[line.getBufferSize()];
 volume(line, .2d);
         line.start();
-        int r = 0;
+        int r;
         while (true) {
             r = audioInputStream.read(buf, 0, buf.length);
             if (r < 0) {
@@ -144,7 +144,7 @@ Debug.println(line.getClass().getName());
         byte[] buf = new byte[line.getBufferSize()];
 volume(line, .2d);
         line.start();
-        int r = 0;
+        int r;
         while (true) {
             r = audioInputStream.read(buf, 0, buf.length);
             if (r < 0) {

@@ -116,7 +116,7 @@ class Opll {
         int type;
         /** OUTPUT */
         int feedback;
-        /** Output value of slot */
+        /* Output value of slot */
         /** for Phase Generator (PG) */
         int[] output = new int[2];
         /** Wavetable */
@@ -487,11 +487,11 @@ class Opll {
 
     private static int tl2eg(int d) {
         return ((d) * (int) (TL_STEP / EG_STEP));
-    };
+    }
 
     private static int sl2eg(int d) {
         return ((d) * (int) (SL_STEP / EG_STEP));
-    };
+    }
 
     private static int dbPos(int x) {
         return (int) ((x) / DB_STEP);
@@ -639,7 +639,7 @@ class Opll {
 
     /** Phase increment counter table */
     private void makeDPhaseTable() {
-        final int[] mlTable = {
+        int[] mlTable = {
             1, 1 * 2, 2 * 2, 3 * 2,
             4 * 2, 5 * 2, 6 * 2, 7 * 2,
             8 * 2, 9 * 2, 10 * 2, 10 * 2,
@@ -1024,7 +1024,7 @@ class Opll {
 
     /** */
     private short calcInternal() {
-        int inst = 0, out = 0;
+        int inst = 0, out;
 
         updateAmPm();
 
@@ -1068,7 +1068,7 @@ class Opll {
 
     /** */
     private void setInstrument(int i, int inst) {
-        final int[] src;
+        int[] src;
         Patch modp, carp;
 
         this.patchNumber[i] = inst;
