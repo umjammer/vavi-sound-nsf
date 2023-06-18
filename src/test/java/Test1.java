@@ -76,7 +76,7 @@ System.err.println(event.getType());
             }
         });
         clip.open(audioInputStream);
-//volume(clip, .2d);
+//volume(clip, .05d);
         clip.start();
         countDownLatch.await();
         clip.close();
@@ -104,7 +104,7 @@ Debug.println("buffer size: " + line.getBufferSize());
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-volume(line, .2d);
+volume(line, .05d);
         line.start();
         int r;
         while (true) {
@@ -142,7 +142,7 @@ Debug.println(line.getClass().getName());
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-volume(line, .2d);
+volume(line, .05d);
         line.start();
         int r;
         while (true) {
