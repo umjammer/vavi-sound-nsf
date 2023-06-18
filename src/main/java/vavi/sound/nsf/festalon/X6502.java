@@ -124,7 +124,7 @@ public class X6502 {
 
     /** */
     private int readMemory(int address) {
-//Debug.println("address: " + StringUtil.toHex4(address));
+//Debug.println(Level.FINER, "address: " + StringUtil.toHex4(address));
         return db = readers[address].exec(address, db); // AReadPrivate[A]
     }
 
@@ -171,7 +171,7 @@ public class X6502 {
 
     /** */
     private void push(int v) {
-//Debug.println("s: " + StringUtil.toHex4(s) + ", " + s);
+//Debug.println(Level.FINER, "s: " + StringUtil.toHex4(s) + ", " + s);
         writeRAM(0x100 + s, v);
         s--;
 if (s < 0) { // TODO

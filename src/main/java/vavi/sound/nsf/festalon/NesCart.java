@@ -1,6 +1,7 @@
 package vavi.sound.nsf.festalon;
 
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import vavi.util.Debug;
 
@@ -40,7 +41,7 @@ class NesCart {
         Page(byte[] page, int pagePointer) {
             this.page = page;
             this.pagePointer = pagePointer;
-//Debug.printf("Page: %04X, %04X\n", page.length, pagePointer);
+//Debug.printf(Level.FINER, "Page: %04X, %04X\n", page.length, pagePointer);
         }
         public String toString() {
             return Arrays.toString(page) + ", " + pagePointer + ", " + prgSize + ", " + prgIsRAM;
@@ -61,21 +62,21 @@ class NesCart {
     /** */
     private void setPagePtr(int s, int address, byte[] p, int pP, boolean ram) {
         int addressBase = address >> 11;
-//Debug.printf("setPagePtr: %04X, %04X, %s\n", address, addressBase, p);
+//Debug.printf(Level.FINER, "setPagePtr: %04X, %04X, %s\n", address, addressBase, p);
 //new Exception("*** DUMMY ***").printStackTrace();
 
         if (p != null) {
             for (int i = 0; i < (s >> 1); i++) {
-//Debug.printf("0: %04X, %04X\n", pP, address);
+//Debug.printf(Level.FINER, "0: %04X, %04X\n", pP, address);
                 pages[addressBase + i] = new Page(p, pP - address);
                 pages[addressBase + i].prgIsRAM = ram;
-Debug.printf("1: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
+Debug.printf(Level.FINE, "1: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
             }
         } else {
             for (int i = 0; i < (s >> 1); i++) {
                 pages[addressBase + i] = new Page(new byte[0x10000], 0);
                 pages[addressBase + i].prgIsRAM = false;
-Debug.printf("3: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
+Debug.printf(Level.FINE, "3: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
             }
         }
     }
@@ -108,7 +109,7 @@ Debug.printf("3: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i
 
     /** */
     Reader cartReader = (address, dataBus) -> {
-//Debug.printf("cart.read: %04X, %04X, %04X\n", address >> 11, address, pages[address >> 11].page.length);
+//Debug.printf(Level.FINER, "cart.read: %04X, %04X, %04X\n", address >> 11, address, pages[address >> 11].page.length);
         return pages[address >> 11].read(address);
     };
 

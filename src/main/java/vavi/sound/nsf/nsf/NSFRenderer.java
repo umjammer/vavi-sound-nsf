@@ -7,6 +7,7 @@ package vavi.sound.nsf.nsf;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 
 import org.apache.commons.lang3.Validate;
 
@@ -135,12 +136,12 @@ public final class NSFRenderer {
     private PeriodTimestampFinder createPlayPeriodFinder() {
 
         long playPeriodNanos = nes.nsf.getPlayPeriodNanos();
-Debug.println("playPeriodNanos: " + playPeriodNanos);
+Debug.println(Level.FINE, "playPeriodNanos: " + playPeriodNanos);
 
         long playPeriodSystemCycles = Math.round(
                 playPeriodNanos/(1e9/SYSTEM_CYCLES_PER_SEC));
 
-Debug.println("playPeriodSystemCycles: " + playPeriodSystemCycles);
+Debug.println(Level.FINE, "playPeriodSystemCycles: " + playPeriodSystemCycles);
 
         return new PeriodTimestampFinder(0, playPeriodSystemCycles);
     }

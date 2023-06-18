@@ -118,7 +118,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
                 this.out = new BufferedOutputStream(out);
             }
 
-Debug.println(props);
+Debug.println(Level.FINE, props);
             if (props.containsKey("maxPlaySecs")) {
                 maxPlaySecs = (int) props.get("maxPlaySecs");
             }
@@ -195,9 +195,9 @@ Debug.println(Level.FINE, "sink finish");
                     out.write(buffer.take());
                 }
                 Thread.yield();
-//Debug.println("write: " + i + ", " + buffer.size());
+//Debug.println(Level.FINER, "write: " + i + ", " + buffer.size());
             } catch (InterruptedException e) {
-Debug.println("BlockingDeque#take() interrupted");
+Debug.println(Level.FINE, "BlockingDeque#take() interrupted");
             }
         }
 

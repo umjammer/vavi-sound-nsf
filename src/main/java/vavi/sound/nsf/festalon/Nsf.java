@@ -26,6 +26,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import vavi.sound.nsf.festalon.ext.ay;
 import vavi.sound.nsf.festalon.ext.fds;
@@ -311,16 +312,16 @@ class Nsf extends Plugin {
     /** */
     private void loadNSF(byte[] buf, int size, int info_only) throws IOException {
         Header nsfHeader = Header.readFrom(new ByteArrayInputStream(buf));
-Debug.println(nsfHeader);
+Debug.println(Level.FINE, nsfHeader);
 
         nsfHeader.gameName[31] = nsfHeader.artist[31] = nsfHeader.copyright[31] = 0;
 
         gameName = new String(nsfHeader.gameName);
-Debug.printf("gameName: %s\n", gameName);
+Debug.printf(Level.FINE, "gameName: %s\n", gameName);
         artist = new String(nsfHeader.artist);
-Debug.printf("artist: %s\n", artist);
+Debug.printf(Level.FINE, "artist: %s\n", artist);
         copyright = new String(nsfHeader.copyright);
-Debug.printf("copyright: %s\n", copyright);
+Debug.printf(Level.FINE, "copyright: %s\n", copyright);
 
         loadAddr = nsfHeader.loadAddressLow;
         loadAddr |= nsfHeader.loadAddressHigh << 8;
@@ -328,22 +329,22 @@ Debug.printf("copyright: %s\n", copyright);
         if (loadAddr < 0x6000) { // A buggy NSF...
             loadAddr += 0x8000;
         }
-Debug.printf("loadAddr: %04x\n", loadAddr);
+Debug.printf(Level.FINE, "loadAddr: %04x\n", loadAddr);
 
         initAddr = nsfHeader.initAddressLow;
         initAddr |= nsfHeader.initAddressHigh << 8;
-Debug.printf("initAddr: %04x\n", initAddr);
+Debug.printf(Level.FINE, "initAddr: %04x\n", initAddr);
 
         playAddr = nsfHeader.playAddressLow;
         playAddr |= nsfHeader.playAddressHigh << 8;
-Debug.printf("playAddr: %04x\n", playAddr);
+Debug.printf(Level.FINE, "playAddr: %04x\n", playAddr);
 
         nsfSize = size - 0x80;
-Debug.printf("nsfSize: %04x\n", nsfSize);
+Debug.printf(Level.FINE, "nsfSize: %04x\n", nsfSize);
 
         nsfMaxBank = (nsfSize + (loadAddr & 0xfff) + 4095) / 4096;
         nsfMaxBank = uppow2(nsfMaxBank);
-Debug.printf("nsfMaxBank: %04x\n", nsfMaxBank);
+Debug.printf(Level.FINE, "nsfMaxBank: %04x\n", nsfMaxBank);
 
         if (info_only == 0) {
             nsfData = new byte[nsfMaxBank * 4096];
@@ -355,13 +356,13 @@ Debug.printf("nsfMaxBank: %04x\n", nsfMaxBank);
             System.arraycopy(buf, 0, nsfData, nsfRawDataP, nsfSize);
 
             nsfMaxBank--;
-Debug.println("here 1");
+Debug.println(Level.FINE, "here 1");
         } else if (info_only == FESTAGFI_TAGS_DATA) {
             nsfData = new byte[nsfSize];
             nsfRawData = nsfData;
             nsfRawDataSize = nsfSize;
             System.arraycopy(buf, 0, nsfData, 0, nsfSize);
-Debug.println("here 2");
+Debug.println(Level.FINE, "here 2");
         }
 
         videoSystem = nsfHeader.videoSystem;
@@ -441,7 +442,7 @@ Debug.println("here 2");
             Arrays.fill(exWRam, 0, 32768 + 8192, (byte) 0x00);
             cpu.setWriter(0x6000, 0xdfff, cart.cartWriter, cart);
             cpu.setReader(0x6000, 0xffff, cart.cartReader, cart);
-Debug.println("here 1");
+Debug.println(Level.FINE, "here 1");
         } else {
             Arrays.fill(exWRam, 0, 8192, (byte) 0x00);
             cpu.setReader(0x6000, 0x7fff, cart.cartReader, cart);
@@ -452,7 +453,7 @@ Debug.println("here 1");
 
             cart.setPrg8r(1, 0x6000, 0);
             cpu.setReader(0x8000, 0xffff, cart.cartReader, cart);
-Debug.println("here 2 *");
+Debug.println(Level.FINE, "here 2 *");
         }
 
         bsOn = 0;
@@ -569,7 +570,7 @@ Debug.println("here 2 *");
         // routine.
         if (cpu.pc == 0x3800 || songReload != 0) {
             if (songReload != 0) {
-Debug.println("clri");
+Debug.println(Level.FINE, "clri");
                 clri();
             }
 
