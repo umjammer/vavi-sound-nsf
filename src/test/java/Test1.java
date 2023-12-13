@@ -37,6 +37,12 @@ import static vavi.sound.SoundUtil.volume;
  */
 public class Test1 {
 
+    static final double volume;
+
+    static {
+        volume = Double.parseDouble(System.getProperty("vavi.test.volume",  "0.2"));
+    }
+
     static final String inFile = "src/test/resources/smb1.nsf";
 
     @Test
@@ -76,7 +82,7 @@ System.err.println(event.getType());
             }
         });
         clip.open(audioInputStream);
-//volume(clip, .05d);
+volume(clip, volume);
         clip.start();
         countDownLatch.await();
         clip.close();
@@ -104,7 +110,7 @@ Debug.println("buffer size: " + line.getBufferSize());
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-volume(line, .05d);
+volume(line, volume); // TODO works?
         line.start();
         int r;
         while (true) {
@@ -142,7 +148,7 @@ Debug.println(line.getClass().getName());
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-volume(line, .05d);
+volume(line, volume);
         line.start();
         int r;
         while (true) {
