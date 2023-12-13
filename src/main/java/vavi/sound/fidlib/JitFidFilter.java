@@ -68,7 +68,7 @@ import java.util.List;
  */
 class JitFidFilter extends FidFilter {
 
-    private class Routine {
+    private static class Routine {
         /** Next in list, or 0 */
         Routine nxt;
         /** Reference count */
@@ -546,7 +546,7 @@ class JitFidFilter extends FidFilter {
 
             // Okay, we now have an IIR/FIR pair to process, possibly with
             // n_iir or n_fir == 0 if one half is missing
-            cnt = n_iir > n_fir ? n_iir : n_fir;
+            cnt = Math.max(n_iir, n_fir);
             if (n_iir != 0) {
                 adj = 1.0 / iir[0];
                 gain *= adj;
@@ -757,7 +757,7 @@ class JitFidFilter extends FidFilter {
     void fid_run_dump(OutputStream out) {
         int a, cnt = 0;
         PrintStream ps = new PrintStream(out);
-        ps.printf("    .file    \"fid_run_dump.s\"\n" + "    .version    \"01.01\"\n" + ".text\n" + "    .align 4\n");
+        ps.print("    .file    \"fid_run_dump.s\"\n" + "    .version    \"01.01\"\n" + ".text\n" + "    .align 4\n");
         for (Routine rr : r_list) {
             ps.printf(".globl    process_%d\n" + "    .type    process_%d,@function\n" + "process_%d:\n", cnt, cnt, cnt);
             for (a = 0; a < rr.len; a++) {

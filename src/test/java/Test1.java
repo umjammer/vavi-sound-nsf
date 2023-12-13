@@ -5,7 +5,8 @@
  */
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -19,8 +20,11 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.SourceDataLine;
 
+import org.junit.jupiter.api.Test;
 import vavi.sound.sampled.nsf.Nsf2PcmAudioInputStream;
 import vavi.util.Debug;
+
+import static vavi.sound.SoundUtil.volume;
 
 
 /**
@@ -33,7 +37,18 @@ import vavi.util.Debug;
  */
 public class Test1 {
 
+    static final double volume;
+
+    static {
+        volume = Double.parseDouble(System.getProperty("vavi.test.volume",  "0.2"));
+    }
+
     static final String inFile = "src/test/resources/smb1.nsf";
+
+    @Test
+    void test1() throws Exception {
+        t0(new String[] {inFile});
+    }
 
     /**
      * @param args
@@ -42,6 +57,7 @@ public class Test1 {
         t0(args);
     }
 
+    /* directly */
     public static void t1(String[] args) throws Exception {
         for (AudioFileFormat.Type type : AudioSystem.getAudioFileTypes()) {
             System.err.println(type);
@@ -52,9 +68,8 @@ public class Test1 {
             1,
             true,
             false);
-        Map<String, Object> props = new HashMap<>();
-        props.put("track", 1);
-        AudioInputStream audioInputStream = new Nsf2PcmAudioInputStream(new FileInputStream(inFile), audioFormat, -1, props);
+        audioFormat.properties().put("track", 1);
+        AudioInputStream audioInputStream = new Nsf2PcmAudioInputStream(Files.newInputStream(Paths.get(inFile)), audioFormat, -1);
 Debug.println(audioFormat);
         DataLine.Info info = new DataLine.Info(Clip.class, audioFormat, AudioSystem.NOT_SPECIFIED);
         CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -67,7 +82,7 @@ System.err.println(event.getType());
             }
         });
         clip.open(audioInputStream);
-//volume(line, .2d);
+volume(clip, volume);
         clip.start();
         countDownLatch.await();
         clip.close();
@@ -81,26 +96,23 @@ System.err.println(event.getType());
             1,
             true,
             false);
-        Map<String, Object> props = new HashMap<>();
-        props.put("track", 5);
-        props.put("maxPlaySecs", 30);
-        AudioInputStream originalAudioInputStream = new Nsf2PcmAudioInputStream(new FileInputStream(inFile), audioFormat, -1, props);
+        audioFormat.properties().put("track", 5);
+        audioFormat.properties().put("maxPlaySecs", 30);
+        AudioInputStream originalAudioInputStream = new Nsf2PcmAudioInputStream(Files.newInputStream(Paths.get(inFile)), audioFormat, -1);
         AudioFormat originalAudioFormat = originalAudioInputStream.getFormat();
 Debug.println(originalAudioFormat);
         AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(audioFormat, originalAudioInputStream);
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat, AudioSystem.NOT_SPECIFIED);
         SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
 Debug.println(line.getClass().getName());
-        line.addLineListener(event -> {
-Debug.println(event.getType());
-        });
+        line.addLineListener(event -> Debug.println(event.getType()));
 Debug.println("buffer size: " + line.getBufferSize());
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-//volume(line, .2d);
+volume(line, volume); // TODO works?
         line.start();
-        int r = 0;
+        int r;
         while (true) {
             r = audioInputStream.read(buf, 0, buf.length);
             if (r < 0) {
@@ -114,6 +126,7 @@ Debug.println("buffer size: " + line.getBufferSize());
         audioInputStream.close();
     }
 
+    /* use spi */
     public static void t0(String[] args) throws Exception {
         AudioFormat audioFormat = new AudioFormat(
             44100,
@@ -124,22 +137,20 @@ Debug.println("buffer size: " + line.getBufferSize());
         Map<String, Object> props = new HashMap<>();
         props.put("track", 5);
         props.put("maxPlaySecs", 30);
-        AudioInputStream originalAudioInputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(inFile)));
+        AudioInputStream originalAudioInputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(Files.newInputStream(Paths.get(inFile))));
         AudioFormat originalAudioFormat = originalAudioInputStream.getFormat();
 Debug.println(originalAudioFormat);
         AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(audioFormat, originalAudioInputStream);
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat, AudioSystem.NOT_SPECIFIED);
         SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
 Debug.println(line.getClass().getName());
-        line.addLineListener(event -> {
-Debug.println(event.getType());
-        });
+        line.addLineListener(event -> Debug.println(event.getType()));
 
         line.open(audioFormat);
         byte[] buf = new byte[line.getBufferSize()];
-//volume(line, .2d);
+volume(line, volume);
         line.start();
-        int r = 0;
+        int r;
         while (true) {
             r = audioInputStream.read(buf, 0, buf.length);
             if (r < 0) {

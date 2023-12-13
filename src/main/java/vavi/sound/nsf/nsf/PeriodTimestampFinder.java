@@ -11,7 +11,7 @@ public final class PeriodTimestampFinder {
     private final long baseTime;
     private final long periodTime;
 
-    public PeriodTimestampFinder(final long baseTime, final long periodTime) {
+    public PeriodTimestampFinder(long baseTime, long periodTime) {
         Validate.isTrue(baseTime >= 0);
         Validate.isTrue(periodTime > 0);
 
