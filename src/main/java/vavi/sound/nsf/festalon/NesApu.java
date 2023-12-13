@@ -942,7 +942,7 @@ public class NesApu {
 // System.err.printf("%8d:%8d\n", x.timestamp, channelBC[4]);
                 doPCM();
                 cpu.timestamp -= rest;
-                rawDALatch += t;
+                rawDALatch = (byte) (rawDALatch + t);
                 if ((rawDALatch & 0x80) != 0) {
                     rawDALatch = bah;
                 }
