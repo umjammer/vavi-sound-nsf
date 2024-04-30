@@ -972,5 +972,3 @@ public class NesApu {
         }
     };
 }
-
-/* */

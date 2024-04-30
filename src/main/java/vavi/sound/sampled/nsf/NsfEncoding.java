@@ -30,5 +30,3 @@ public class NsfEncoding extends AudioFormat.Encoding {
         super(name);
     }
 }
-
-/* */

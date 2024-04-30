@@ -24,5 +24,3 @@ public class Test2 {
         filter.fid_list_filters(System.err);
     }
 }
-
-/* */

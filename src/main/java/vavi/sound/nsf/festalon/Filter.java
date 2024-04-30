@@ -225,5 +225,3 @@ if (fid != null) {
         return count;
     }
 }
-
-/* */

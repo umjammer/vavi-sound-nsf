@@ -930,5 +930,3 @@ e.printStackTrace();
         apu.waveFinal = new float[apu.waveFinalLen];
     }
 }
-
-/* */

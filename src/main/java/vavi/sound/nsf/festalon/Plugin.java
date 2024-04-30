@@ -34,5 +34,3 @@ abstract class Plugin {
     /** */
     public abstract void disable(int t);
 }
-
-/* */

@@ -299,5 +299,3 @@ public class fds extends ExpSound {
         this.channels = 1;
     }
 }
-
-/* */

@@ -146,5 +146,3 @@ public class vrc6 extends ExpSound {
         apu.cpu.setWriter(0x8000, 0xbfff, sWriter, this);
     }
 }
-
-/* */

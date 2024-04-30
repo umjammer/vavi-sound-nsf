@@ -15,5 +15,3 @@ package vavi.sound.nsf.festalon;
  */
 public interface IO {
 }
-
-/* */

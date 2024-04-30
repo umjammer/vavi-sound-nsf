@@ -943,5 +943,3 @@ class JitFidFilter extends FidFilter {
         return 0;
     }
 }
-
-/* */

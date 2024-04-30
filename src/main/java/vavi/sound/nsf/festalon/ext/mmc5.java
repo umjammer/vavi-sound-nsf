@@ -197,5 +197,3 @@ public class mmc5 extends ExpSound {
         apu.cpu.setReader(0x5205, 0x5206, reader, this);
     }
 }
-
-/* */

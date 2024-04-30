@@ -25,5 +25,3 @@ public abstract class ExpSound {
     /** */
     protected int channels;
 }
-
-/* */
