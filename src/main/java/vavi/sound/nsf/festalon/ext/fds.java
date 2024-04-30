@@ -78,13 +78,11 @@ public class fds extends ExpSound {
     /** */
     private Reader sReader = (address, dataBus) -> {
 
-        switch (address & 0xf) {
-        case 0x0:
-            return (amplitude[0] | (dataBus & 0xc0));
-        case 0x2:
-            return (amplitude[1] | (dataBus & 0xc0));
-        }
-        return dataBus;
+        return switch (address & 0xf) {
+            case 0x0 -> (amplitude[0] | (dataBus & 0xc0));
+            case 0x2 -> (amplitude[1] | (dataBus & 0xc0));
+            default -> dataBus;
+        };
     };
 
     /** */

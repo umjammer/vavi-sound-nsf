@@ -116,7 +116,7 @@ public class n106 extends ExpSound {
      * envelope ...?
      */
 
-    private int fetchDuff(byte[] IRAM, int P, int envelope, int PlayIndex) {
+    private static int fetchDuff(byte[] IRAM, int P, int envelope, int PlayIndex) {
         int duff;
         duff = IRAM[((IRAM[0x46 + (P << 3)] + (PlayIndex >> TOINDEX)) & 0xFF) >> 1];
         if (((IRAM[0x46 + (P << 3)] + (PlayIndex >> TOINDEX)) & 1) != 0) {

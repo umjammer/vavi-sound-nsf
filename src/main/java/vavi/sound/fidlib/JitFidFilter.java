@@ -723,7 +723,7 @@ class JitFidFilter extends FidFilter {
         mov_cnt = (this.n_buf - 1) / 4;
     }
 
-    private boolean memcmp(byte[] a, byte[] b, int len) {
+    private static boolean memcmp(byte[] a, byte[] b, int len) {
         for (int i = 0; i < len; i++) {
             if (a[i] != b[i]) {
                 return false;
@@ -757,13 +757,25 @@ class JitFidFilter extends FidFilter {
     void fid_run_dump(OutputStream out) {
         int a, cnt = 0;
         PrintStream ps = new PrintStream(out);
-        ps.print("    .file    \"fid_run_dump.s\"\n" + "    .version    \"01.01\"\n" + ".text\n" + "    .align 4\n");
+        ps.print("""
+                    .file    "fid_run_dump.s"
+                    .version    "01.01"
+                .text
+                    .align 4
+                """);
         for (Routine rr : r_list) {
-            ps.printf(".globl    process_%d\n" + "    .type    process_%d,@function\n" + "process_%d:\n", cnt, cnt, cnt);
+            ps.printf("""
+                    .globl    process_%d
+                        .type    process_%d,@function
+                    process_%d:
+                    """, cnt, cnt, cnt);
             for (a = 0; a < rr.len; a++) {
                 ps.printf("    .byte 0x%02X\n", 255 & rr.code[a]);
             }
-            ps.printf(".Lfe1%d:\n" + "    .size    process_%d,.Lfe1%d-process_%d\n", cnt, cnt, cnt, cnt);
+            ps.printf("""
+                    .Lfe1%d:
+                        .size    process_%d,.Lfe1%d-process_%d
+                    """, cnt, cnt, cnt, cnt);
             cnt++;
         }
     }
@@ -773,12 +785,12 @@ class JitFidFilter extends FidFilter {
      * as it's available. See below for credits.
      */
 
-    private int hashsize(int n) {
-        return (1 << (n));
+    private static int hashsize(int n) {
+        return 1 << n;
     }
 
-    private int hashmask(int n) {
-        return (hashsize(n) - 1);
+    private static int hashmask(int n) {
+        return hashsize(n) - 1;
     }
 
     /**
@@ -807,7 +819,7 @@ class JitFidFilter extends FidFilter {
      * fastest good hash I could find. There were about 2^^68 to choose from. I
      * only looked at a billion or so.
      */
-    private void mix(int a, int b, int c) {
+    private static void mix(int a, int b, int c) {
         a -= b;
         a -= c;
         a ^= (c >> 13);

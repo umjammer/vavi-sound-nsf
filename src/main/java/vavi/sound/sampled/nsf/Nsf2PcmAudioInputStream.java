@@ -62,23 +62,23 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
         private OutputStream out;
 
         /** */
-        private NES nes;
+        private final NES nes;
 
         /** */
-        private BlockingDeque<Byte> buffer = new LinkedBlockingDeque<>();
+        private final BlockingDeque<Byte> buffer = new LinkedBlockingDeque<>();
 
         int maxPlaySecs = 90;
         int maxSilenceSecs = 3;
 
-        private Map<String, Object> props;
+        private final Map<String, Object> props;
 
-        private Thread maxThreadFactory(Runnable r) {
+        private static Thread maxThreadFactory(Runnable r) {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
             return thread;
         }
 
-        private ExecutorService executor = Executors.newSingleThreadExecutor(this::maxThreadFactory);
+        private final ExecutorService executor = Executors.newSingleThreadExecutor(NSFOutputEngine::maxThreadFactory);
 
         /** */
         public NSFOutputEngine(InputStream in, Map<String, Object> props) throws IOException {
@@ -152,7 +152,7 @@ Debug.println(Level.FINE, props);
                             try {
                                 buffer.put(b);
                             } catch (InterruptedException e) {
-                                e.printStackTrace(); // TODO consider more
+                                Debug.printStackTrace(e); // TODO consider more
                             }
                         }
 
@@ -177,7 +177,7 @@ Debug.println(Level.FINE, "sink finish");
                 // rendering is too slow, wait buffering
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Debug.printStackTrace(e);
             }
 
             blockingDequeThread = Thread.currentThread();

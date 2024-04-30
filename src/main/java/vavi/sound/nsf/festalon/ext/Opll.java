@@ -591,7 +591,7 @@ class Opll {
     }
 
     /** Liner(+0.0 - +1.0) to dB((1<<DB_BITS) - 1 -- 0) */
-    private int lin2db(double d) {
+    private static int lin2db(double d) {
         if (d == 0) {
             return (DB_MUTE - 1);
         } else {

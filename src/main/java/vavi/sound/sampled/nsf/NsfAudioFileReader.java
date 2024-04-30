@@ -6,6 +6,7 @@
 
 package vavi.sound.sampled.nsf;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,23 +90,13 @@ Debug.println(Level.FINE, e.getMessage());
     @Override
     public AudioInputStream getAudioInputStream(File file) throws UnsupportedAudioFileException, IOException {
         InputStream inputStream = Files.newInputStream(file.toPath());
-        try {
-            return getAudioInputStream(inputStream, (int) file.length());
-        } catch (UnsupportedAudioFileException | IOException e) {
-            inputStream.close();
-            throw e;
-        }
+        return getAudioInputStream(new BufferedInputStream(inputStream), (int) file.length());
     }
 
     @Override
     public AudioInputStream getAudioInputStream(URL url) throws UnsupportedAudioFileException, IOException {
         InputStream inputStream = url.openStream();
-        try {
-            return getAudioInputStream(inputStream);
-        } catch (UnsupportedAudioFileException | IOException e) {
-            inputStream.close();
-            throw e;
-        }
+        return getAudioInputStream(inputStream instanceof BufferedInputStream ? inputStream : new BufferedInputStream(inputStream));
     }
 
     @Override

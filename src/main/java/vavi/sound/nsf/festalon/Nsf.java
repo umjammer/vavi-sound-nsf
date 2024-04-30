@@ -783,7 +783,7 @@ e.printStackTrace();
     }
 
     /** */
-    private int uppow2(int n) {
+    private static int uppow2(int n) {
         for (int x = 31; x >= 0; x--) {
             if ((n & (1 << x)) != 0) {
                 if ((1 << x) != n) {

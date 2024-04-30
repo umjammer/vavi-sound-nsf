@@ -63,13 +63,11 @@ public class mmc5 extends ExpSound {
     private Reader exRamReader = (address, dataBus) -> exRam[address & 0x3ff];
 
     private Reader reader = (address, dataBus) -> {
-        switch (address) {
-        case 0x5205:
-            return (mul[0] * mul[1]);
-        case 0x5206:
-            return ((mul[0] * mul[1]) >> 8);
-        }
-        return dataBus;
+        return switch (address) {
+            case 0x5205 -> (mul[0] * mul[1]);
+            case 0x5206 -> ((mul[0] * mul[1]) >> 8);
+            default -> dataBus;
+        };
     };
 
     private void do5PCMHQ() {

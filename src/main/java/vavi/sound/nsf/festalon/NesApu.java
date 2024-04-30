@@ -568,7 +568,7 @@ public class NesApu {
     // time...
 
     /** */
-    private int checkFreq(int cf, byte sr) {
+    private static int checkFreq(int cf, byte sr) {
         int mod;
         if ((sr & 0x8) == 0) {
             mod = cf >> (sr & 7);
