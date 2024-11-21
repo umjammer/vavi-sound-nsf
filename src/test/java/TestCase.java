@@ -35,6 +35,8 @@ import static vavi.sound.SoundUtil.volume;
 /**
  * TestCase.
  *
+ * clip takes a bit time for loading all, so not tested
+ *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2012/06/11 umjammer initial version <br>
  */
@@ -65,7 +67,7 @@ for (AudioFileFormat.Type type : AudioSystem.getAudioFileTypes()) {
     static int time = System.getProperty("vavi.test", "").equals("ide") ? 1000 : 10;
 
     @Test
-    @DisplayName("directly, clip takes a bit time for loading all")
+    @DisplayName("directly")
     void test0() throws Exception {
         Map<String, Object> props = new HashMap<>();
         props.put("track", 5);
@@ -84,22 +86,27 @@ for (AudioFileFormat.Type type : AudioSystem.getAudioFileTypes()) {
         AudioInputStream ais = new Nsf2PcmAudioInputStream(Files.newInputStream(Paths.get(inFile)), targetAudioFormat, -1);
 Debug.println(targetAudioFormat);
 
-        DataLine.Info info = new DataLine.Info(Clip.class, targetAudioFormat, AudioSystem.NOT_SPECIFIED);
-        CountDownLatch cdl = new CountDownLatch(1);
-        Clip clip = (Clip) AudioSystem.getLine(info);
-Debug.println(clip.getClass().getName());
-        clip.addLineListener(event -> {
-Debug.println(event.getType());
-            if (event.getType().equals(LineEvent.Type.STOP)) {
-                cdl.countDown();
-            }
-        });
-        clip.open(ais);
-        volume(clip, volume);
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, targetAudioFormat, AudioSystem.NOT_SPECIFIED);
+        SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
+        Debug.println(line.getClass().getName());
+        line.addLineListener(event -> Debug.println(event.getType()));
+        Debug.println("buffer size: " + line.getBufferSize());
 
-        clip.start();
-        cdl.await();
-        clip.close();
+        line.open(targetAudioFormat);
+        volume(line, volume);
+        line.start();
+        int r;
+        byte[] buf = new byte[line.getBufferSize()];
+        while (true) {
+            r = ais.read(buf, 0, buf.length);
+            if (r < 0) {
+                break;
+            }
+//Debug.println("line: " + line.available());
+            line.write(buf, 0, r);
+        }
+        line.drain();
+        line.close();
 
         ais.close();
     }

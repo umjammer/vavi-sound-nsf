@@ -110,6 +110,8 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
         /** the thread which executes buffer#take() */
         private Thread blockingDequeThread;
 
+        private volatile boolean finished = false;
+
         /** */
         public void initialize(OutputStream out) throws IOException {
             if (this.out != null) {
@@ -160,12 +162,7 @@ Debug.println(Level.FINE, "props from target AudioFormat: " + props);
                         public void finish() {
                             blockingDequeThread.interrupt();
 Debug.println(Level.FINE, "sink finish");
-                            try {
-                                out.close(); // TODO wait write finished
-                            } catch (IOException e) {
-                                finish();
-                                throw new UncheckedIOException(e);
-                            }
+                            finished = true;
                         }
                     });
                 } catch (IOException e) {
@@ -173,28 +170,21 @@ Debug.println(Level.FINE, "sink finish");
                 }
             });
 
-            try {
-                // rendering is too slow, wait buffering
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Debug.printStackTrace(e);
-            }
-
             blockingDequeThread = Thread.currentThread();
         }
 
         static final int BUFFER_SIZE = 16;
 
-        byte[] buf = new byte[BUFFER_SIZE];
-
         /** */
         public void execute() throws IOException {
             try {
                 int c = 0;
-                while (buffer.peek() != null || c++ < BUFFER_SIZE) {
+                while (buffer.peek() != null && c++ < BUFFER_SIZE) {
                     out.write(buffer.take());
                 }
-                Thread.yield();
+                if (finished) {
+                    out.close();
+                }
 //Debug.println(Level.FINER, "write: " + i + ", " + buffer.size());
             } catch (InterruptedException e) {
 Debug.println(Level.FINE, "BlockingDeque#take() interrupted");
