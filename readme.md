@@ -13,12 +13,26 @@
 
  * [maven](https://jitpack.io/#umjammer/vavi-sound-nsf)
 
-## TODO
+## Usage
 
- * ~~improve decoding speed (i7 imac)~~
-   * on m2 ultra mac no problem 
+```java
+AudioInputStream ais = AudioSystem.getAudioInputStream(Paths.get(nsf).toFile());
+Clip clip = AudioSystem.getClip();
+clip.open(AudioSystem.getAudioInputStream(new AudioFormat(Encoding.PCM_SIGNED, 44100, 16, 1, 2, 44100, false, props), ais));
+clip.loop(Clip.LOOP_CONTINUOUSLY);
+```
+
+### properties for target `AudioFormat`
+
+* `track` ... specify track # in the file to play
+* `maxPlaySecs` ... specify max play time in \[sec]
 
 ## References
 
-  * [nsf](https://github.com/orangelando/nsf)
-  * [Festalon](https://github.com/ahefner/festalon)
+* [nsf](https://github.com/orangelando/nsf)
+* [Festalon](https://github.com/ahefner/festalon)
+
+## TODO
+
+ * ~~improve decoding speed (i7 imac)~~
+   * on m2 ultra mac no problem
