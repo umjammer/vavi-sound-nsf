@@ -6,11 +6,12 @@
 
 package vavi.sound.sampled.nsf;
 
+import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.logging.Level;
 
 import javax.sound.sampled.AudioFileFormat;
@@ -35,22 +36,15 @@ public class NsfAudioFileReader extends AudioFileReader {
 
     @Override
     public AudioFileFormat getAudioFileFormat(File file) throws UnsupportedAudioFileException, IOException {
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(file);
+        try (InputStream inputStream = Files.newInputStream(file.toPath())) {
             return getAudioFileFormat(inputStream, (int) file.length());
-        } finally {
-            inputStream.close();
         }
     }
 
     @Override
     public AudioFileFormat getAudioFileFormat(URL url) throws UnsupportedAudioFileException, IOException {
-        InputStream inputStream = url.openStream();
-        try {
+        try (InputStream inputStream = url.openStream()) {
             return getAudioFileFormat(inputStream);
-        } finally {
-            inputStream.close();
         }
     }
 
@@ -95,30 +89,14 @@ Debug.println(Level.FINE, e.getMessage());
 
     @Override
     public AudioInputStream getAudioInputStream(File file) throws UnsupportedAudioFileException, IOException {
-        InputStream inputStream = new FileInputStream(file);
-        try {
-            return getAudioInputStream(inputStream, (int) file.length());
-        } catch (UnsupportedAudioFileException e) {
-            inputStream.close();
-            throw e;
-        } catch (IOException e) {
-            inputStream.close();
-            throw e;
-        }
+        InputStream inputStream = Files.newInputStream(file.toPath());
+        return getAudioInputStream(new BufferedInputStream(inputStream), (int) file.length());
     }
 
     @Override
     public AudioInputStream getAudioInputStream(URL url) throws UnsupportedAudioFileException, IOException {
         InputStream inputStream = url.openStream();
-        try {
-            return getAudioInputStream(inputStream);
-        } catch (UnsupportedAudioFileException e) {
-            inputStream.close();
-            throw e;
-        } catch (IOException e) {
-            inputStream.close();
-            throw e;
-        }
+        return getAudioInputStream(inputStream instanceof BufferedInputStream ? inputStream : new BufferedInputStream(inputStream));
     }
 
     @Override

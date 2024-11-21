@@ -20,8 +20,11 @@
 package vavi.sound.nsf.festalon;
 
 
+import java.util.Arrays;
+
+
 public class NesApu {
-    private class UnitEnvironment {
+    private static class UnitEnvironment {
         byte speed;
         /** Fixed volume(1), and loop(2) */
         byte mode;
@@ -262,14 +265,10 @@ public class NesApu {
         cpu.setWriter(0x4015, 0x4015, statusWriter, this);
         cpu.setReader(0x4015, 0x4015, statusReader, this);
 
-        for (int i = 0; i < psg.length; i++) {
-            psg[i] = 0x00;
-        }
+        Arrays.fill(psg, (byte) 0x00);
         reset();
 
-        for (int i = 0; i < waveHi.length; i++) {
-            waveHi[i] = 0;
-        }
+        Arrays.fill(waveHi, 0);
         for (int i = 0; i < unitEnvs.length; i++) {
             unitEnvs[i] = new UnitEnvironment();
         }
@@ -355,7 +354,7 @@ public class NesApu {
     }
 
     /** This has the correct phase. Don't mess with it. */
-    private final void doSQ(int i) {
+    private void doSQ(int i) {
         int v;
         int amp;
         int rThresh;
@@ -569,7 +568,7 @@ public class NesApu {
     // time...
 
     /** */
-    private int checkFreq(int cf, byte sr) {
+    private static int checkFreq(int cf, byte sr) {
         int mod;
         if ((sr & 0x8) == 0) {
             mod = cf >> (sr & 7);
@@ -878,7 +877,7 @@ public class NesApu {
     }
 
     /** */
-    private final void test() {
+    private void test() {
         if (dmcBitCount == 0) {
             if (dmcHaveDMA == 0)
                 dmcHaveSample = 0;
@@ -891,7 +890,7 @@ public class NesApu {
     }
 
     /** */
-    private final void dmcDMA() {
+    private void dmcDMA() {
         if (dmcSize != 0 && dmcHaveDMA == 0) {
             cpu.readDm(0x8000 + dmcAddress);
             cpu.readDm(0x8000 + dmcAddress);
@@ -943,7 +942,7 @@ public class NesApu {
 // System.err.printf("%8d:%8d\n", x.timestamp, channelBC[4]);
                 doPCM();
                 cpu.timestamp -= rest;
-                rawDALatch += t;
+                rawDALatch = (byte) (rawDALatch + t);
                 if ((rawDALatch & 0x80) != 0) {
                     rawDALatch = bah;
                 }
@@ -973,5 +972,3 @@ public class NesApu {
         }
     };
 }
-
-/* */

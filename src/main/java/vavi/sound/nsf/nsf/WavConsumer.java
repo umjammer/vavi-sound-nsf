@@ -84,9 +84,8 @@ final class WavConsumer implements APUSampleConsumer {
 
     private static float clamped(float sample) {
         if (sample < 0f) return 0f;
-        if (sample > 1f) return 1f;
+        return Math.min(sample, 1f);
 
-        return sample;
     }
 
     private float filtered(float sample) {

@@ -9,9 +9,13 @@ package vavi.sound.sampled.nsf;
 import java.io.IOException;
 
 import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioFormat.Encoding;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.spi.FormatConversionProvider;
+
+import static javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED;
+import static javax.sound.sampled.AudioSystem.NOT_SPECIFIED;
 
 
 /**
@@ -29,13 +33,13 @@ public class NsfFormatConversionProvider extends FormatConversionProvider {
 
     @Override
     public AudioFormat.Encoding[] getTargetEncodings() {
-        return new AudioFormat.Encoding[] { AudioFormat.Encoding.PCM_SIGNED };
+        return new AudioFormat.Encoding[] { PCM_SIGNED };
     }
 
     @Override
     public AudioFormat.Encoding[] getTargetEncodings(AudioFormat sourceFormat) {
         if (sourceFormat.getEncoding() instanceof NsfEncoding) {
-            return new AudioFormat.Encoding[] { AudioFormat.Encoding.PCM_SIGNED };
+            return new AudioFormat.Encoding[] { PCM_SIGNED };
         } else {
             return new AudioFormat.Encoding[0];
         }
@@ -43,13 +47,13 @@ public class NsfFormatConversionProvider extends FormatConversionProvider {
 
     @Override
     public AudioFormat[] getTargetFormats(AudioFormat.Encoding targetEncoding, AudioFormat sourceFormat) {
-        if (sourceFormat.getEncoding() instanceof NsfEncoding && targetEncoding.equals(AudioFormat.Encoding.PCM_SIGNED)) {
+        if (sourceFormat.getEncoding() instanceof NsfEncoding && targetEncoding.equals(PCM_SIGNED)) {
             return new AudioFormat[] {
                 new AudioFormat(sourceFormat.getSampleRate(),
-                                16,         // sample size in bits
+                                16,             // sample size in bits
                                 sourceFormat.getChannels(),
-                                true,       // signed
-                                false)      // little endian (for PCM wav)
+                                true,                  // signed
+                                false)                        // little endian (for PCM wav)
             };
         } else {
             return new AudioFormat[0];
@@ -66,12 +70,12 @@ public class NsfFormatConversionProvider extends FormatConversionProvider {
                     AudioFormat targetFormat = formats[0];
                     if (sourceFormat.equals(targetFormat)) {
                         return sourceStream;
-                    } else if (sourceFormat.getEncoding() instanceof NsfEncoding && targetFormat.getEncoding().equals(AudioFormat.Encoding.PCM_SIGNED)) {
-                        return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, AudioSystem.NOT_SPECIFIED, sourceFormat.properties());
-                    } else if (sourceFormat.getEncoding().equals(AudioFormat.Encoding.PCM_SIGNED) && targetFormat.getEncoding() instanceof NsfEncoding) {
-                        throw new IllegalArgumentException("unable to convert " + sourceFormat.toString() + " to " + targetFormat.toString());
+                    } else if (sourceFormat.getEncoding() instanceof NsfEncoding && targetFormat.getEncoding().equals(PCM_SIGNED)) {
+                        return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
+                    } else if (sourceFormat.getEncoding().equals(PCM_SIGNED) && targetFormat.getEncoding() instanceof NsfEncoding) {
+                        throw new IllegalArgumentException("unable to convert " + sourceFormat + " to " + targetFormat);
                     } else {
-                        throw new IllegalArgumentException("unable to convert " + sourceFormat.toString() + " to " + targetFormat.toString());
+                        throw new IllegalArgumentException("unable to convert " + sourceFormat + " to " + targetFormat.toString());
                     }
                 } else {
                     throw new IllegalArgumentException("target format not found");
@@ -94,12 +98,12 @@ public class NsfFormatConversionProvider extends FormatConversionProvider {
                     if (sourceFormat.equals(targetFormat)) {
                         return sourceStream;
                     } else if (sourceFormat.getEncoding() instanceof NsfEncoding &&
-                               targetFormat.getEncoding().equals(AudioFormat.Encoding.PCM_SIGNED)) {
-                        return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, AudioSystem.NOT_SPECIFIED, sourceFormat.properties());
-                    } else if (sourceFormat.getEncoding().equals(AudioFormat.Encoding.PCM_SIGNED) && targetFormat.getEncoding() instanceof NsfEncoding) {
-                        throw new IllegalArgumentException("unable to convert " + sourceFormat.toString() + " to " + targetFormat.toString());
+                               targetFormat.getEncoding().equals(PCM_SIGNED)) {
+                        return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
+                    } else if (sourceFormat.getEncoding().equals(PCM_SIGNED) && targetFormat.getEncoding() instanceof NsfEncoding) {
+                        throw new IllegalArgumentException("unable to convert " + sourceFormat + " to " + targetFormat);
                     } else {
-                        throw new IllegalArgumentException("unable to convert " + sourceFormat.toString() + " to " + targetFormat.toString());
+                        throw new IllegalArgumentException("unable to convert " + sourceFormat + " to " + targetFormat);
                     }
                 } else {
                     throw new IllegalArgumentException("target format not found");
@@ -112,5 +116,3 @@ public class NsfFormatConversionProvider extends FormatConversionProvider {
         }
     }
 }
-
-/* */

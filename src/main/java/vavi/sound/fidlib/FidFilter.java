@@ -229,14 +229,14 @@ public abstract class FidFilter {
     /**
      * Target-specific fixes
      */
-    private static final double asinh(double val) {
+    private static double asinh(double val) {
         return Math.log(val + Math.sqrt(val * val + 1.0));
     }
 
     /**
      * Complex multiply: aa *= bb;
      */
-    private final void cmul(double[] aa, int aaP, double[] bb, int bbP) {
+    private static void cmul(double[] aa, int aaP, double[] bb, int bbP) {
         double rr = aa[aaP + 0] * bb[bbP + 0] - aa[aaP + 1] * bb[bbP + 1];
         double ii = aa[aaP + 0] * bb[bbP + 1] + aa[aaP + 1] * bb[bbP + 0];
         aa[aaP + 0] = rr;
@@ -246,7 +246,7 @@ public abstract class FidFilter {
     /**
      * Complex square: aa *= aa;
      */
-    private final void csqu(double[] aa, int aaP) {
+    private static void csqu(double[] aa, int aaP) {
         double rr = aa[aaP + 0] * aa[aaP + 0] - aa[aaP + 1] * aa[aaP + 1];
         double ii = 2 * aa[aaP + 0] * aa[aaP + 1];
         aa[aaP + 0] = rr;
@@ -256,7 +256,7 @@ public abstract class FidFilter {
     /**
      * Complex multiply by real: aa *= bb;
      */
-    private final void cmulr(double[] aa, int aaP, double fact) {
+    private static void cmulr(double[] aa, int aaP, double fact) {
         aa[aaP + 0] *= fact;
         aa[aaP + 1] *= fact;
     }
@@ -264,14 +264,14 @@ public abstract class FidFilter {
     /**
      * Complex conjugate: aa= aa*
      */
-    private final void cconj(double[] aa) {
+    private static void cconj(double[] aa) {
         aa[1] = -aa[1];
     }
 
     /**
      * Complex divide: aa /= bb;
      */
-    private final void cdiv(double[] aa, int aaP, double[] bb) {
+    private static void cdiv(double[] aa, int aaP, double[] bb) {
         double rr = aa[aaP + 0] * bb[0] + aa[aaP + 1] * bb[1];
         double ii = -aa[aaP + 0] * bb[1] + aa[aaP + 1] * bb[0];
         double fact = 1.0 / (bb[0] * bb[0] + bb[1] * bb[1]);
@@ -282,7 +282,7 @@ public abstract class FidFilter {
     /**
      * Complex reciprocal: aa= 1/aa
      */
-    private final void crecip(double[] aa, int aaP) {
+    private static void crecip(double[] aa, int aaP) {
         double fact = 1.0 / (aa[aaP + 0] * aa[aaP + 0] + aa[aaP + 1] * aa[aaP + 1]);
         aa[aaP + 0] *= fact;
         aa[aaP + 1] *= -fact;
@@ -291,14 +291,14 @@ public abstract class FidFilter {
     /**
      * Complex assign: aa= bb
      */
-    private final void cass(double[] aa, int aaP, double[] bb, int bbP) {
+    private static void cass(double[] aa, int aaP, double[] bb, int bbP) {
         System.arraycopy(bb, bbP, aa, aaP, 2); // Assigning doubles is really slow
     }
 
     /**
      * Complex assign: aa= (rr + ii*j)
      */
-    private final void cassz(double[] aa, int aaP, double rr, double ii) {
+    private static void cassz(double[] aa, int aaP, double rr, double ii) {
         aa[aaP + 0] = rr;
         aa[aaP + 1] = ii;
     }
@@ -306,7 +306,7 @@ public abstract class FidFilter {
     /**
      * Complex add: aa += bb
      */
-    private final void cadd(double[] aa, int aaP, double[] bb) {
+    private static void cadd(double[] aa, int aaP, double[] bb) {
         aa[aaP + 0] += bb[0];
         aa[aaP + 1] += bb[1];
     }
@@ -314,7 +314,7 @@ public abstract class FidFilter {
     /**
      * Complex add: aa += (rr + ii*j)
      */
-    private final void caddz(double[] aa, int aaP, double rr, double ii) {
+    private static void caddz(double[] aa, int aaP, double rr, double ii) {
         aa[aaP + 0] += rr;
         aa[aaP + 1] += ii;
     }
@@ -322,7 +322,7 @@ public abstract class FidFilter {
     /**
      * Complex subtract: aa -= bb
      */
-    private final void csub(double[] aa, double[] bb) {
+    private static void csub(double[] aa, double[] bb) {
         aa[0] -= bb[0];
         aa[1] -= bb[1];
     }
@@ -330,7 +330,7 @@ public abstract class FidFilter {
     /**
      * Complex subtract: aa -= (rr + ii*j)
      */
-    private final void csubz(double[] aa, double rr, double ii) {
+    private static void csubz(double[] aa, double rr, double ii) {
         aa[0] -= rr;
         aa[1] -= ii;
     }
@@ -338,7 +338,7 @@ public abstract class FidFilter {
     /**
      * Complex negate: aa= -aa
      */
-    private final void cneg(double[] aa, int aaP) {
+    private static void cneg(double[] aa, int aaP) {
         aa[aaP + 0] = -aa[aaP + 0];
         aa[aaP + 1] = -aa[aaP + 1];
     }
@@ -348,7 +348,7 @@ public abstract class FidFilter {
      * the result, in[0]+i*in[1] is the input value. Coefficients are real
      * values.
      */
-    private final void evaluate(double[] rv, double[] coef, int n_coef, double[] in) {
+    private static void evaluate(double[] rv, double[] coef, int n_coef, double[] in) {
         double[] pz = new double[2]; // Powers of Z
         int coefP = 0;
         // Handle first iteration by hand
@@ -473,7 +473,7 @@ public abstract class FidFilter {
      * Delays longer than 8,000,000 samples are not handled well, as the code
      * drops out at this point rather than get stuck in an endless loop.
      */
-    protected int fid_calc_delay(List<FidFilter> filt) {
+    protected static int fid_calc_delay(List<FidFilter> filt) {
         FidFilter run1, run2;
         double tot, tot100, tot50;
         int cnt;
@@ -652,12 +652,12 @@ public abstract class FidFilter {
     /**
      * Complex square root: aa= aa^0.5
      */
-    private final double my_sqrt(double aa) {
+    private static double my_sqrt(double aa) {
         return aa <= 0.0 ? 0.0 : Math.sqrt(aa);
     }
 
     /** */
-    private final void csqrt(double[] aa, int aaP) {
+    private static void csqrt(double[] aa, int aaP) {
         double mag = Math.hypot(aa[aaP + 0], aa[aaP + 1]);
         double rr = my_sqrt((mag + aa[aaP + 0]) * 0.5);
         double ii = my_sqrt((mag - aa[aaP + 0]) * 0.5);
@@ -671,7 +671,7 @@ public abstract class FidFilter {
     /**
      * Complex imaginary exponent: aa= e^i.theta
      */
-    private final void cexpj(double[] aa, int aaP, double theta) {
+    private static void cexpj(double[] aa, int aaP, double theta) {
         aa[aaP + 0] = Math.cos(theta);
         aa[aaP + 1] = Math.sin(theta);
     }
@@ -679,7 +679,7 @@ public abstract class FidFilter {
     /**
      * Complex exponent: aa= e^aa
      */
-    private final void cexp(double[] aa, int aaP) {
+    private static void cexp(double[] aa, int aaP) {
         double mag = Math.exp(aa[aaP + 0]);
         aa[aaP + 0] = mag * Math.cos(aa[aaP + 1]);
         aa[aaP + 1] = mag * Math.sin(aa[aaP + 1]);
@@ -716,7 +716,7 @@ public abstract class FidFilter {
     /**
      * Pre-warp a frequency
      */
-    private final double prewarp(double val) {
+    private static double prewarp(double val) {
         return Math.tan(val * Math.PI) / Math.PI;
     }
 
@@ -1359,7 +1359,7 @@ public abstract class FidFilter {
      * Stack a number of identical filters, generating the required FidFilter
      * return value
      */
-    private List<FidFilter> stack_filter(int order, int n_head, int n_val, Object... ap) {
+    private static List<FidFilter> stack_filter(int order, int n_head, int n_val, Object... ap) {
         List<FidFilter> rv = new ArrayList<>(n_head * order);
         FidFilter p;
 //      FidFilter q;
@@ -1934,7 +1934,7 @@ public abstract class FidFilter {
      * See the previous description for the required meaning of the return value
      * FidFilter list.
      */
-    private abstract class Filter {
+    private abstract static class Filter {
         public Filter(String format, String text) {
             this.format = format;
             this.text = text;
@@ -2034,8 +2034,8 @@ public abstract class FidFilter {
      * specification string. These should be -ve if there is no default range
      * (causing an error if they are omitted from the 'spec').
      */
-    private class Spec {
-        final int MAXARG = 10;
+    private static class Spec {
+        static final int MAXARG = 10;
         String spec;
         double in_f0, in_f1;
         int in_adj;
@@ -2084,7 +2084,7 @@ public abstract class FidFilter {
         // Generate the filter
         if (sp.adj == 0) {
             rv = filter[sp.fi].rout(rate, f0, f1, sp.order, sp.n_arg, sp.argarr);
-        } else if (filter[sp.fi].format.indexOf("#R") != -1) {
+        } else if (filter[sp.fi].format.contains("#R")) {
             rv = auto_adjust_dual(sp, rate, f0, f1);
         } else {
             rv = auto_adjust_single(sp, rate, f0);
@@ -2357,7 +2357,7 @@ public abstract class FidFilter {
      * Expand a specification string to the given buffer; if out of space, drops
      * dead
      */
-    private void expand_spec(byte[] buf, int bufend, byte[] str) {
+    private static void expand_spec(byte[] buf, int bufend, byte[] str) {
         int ch;
         int p = 0; // buf
         int strP = 0;
@@ -2430,7 +2430,7 @@ public abstract class FidFilter {
         double gain = 1.0;
         double[] iir, fir;
         double iir_adj = 0;
-        final double[] const_one = { 1 };
+        double[] const_one = { 1 };
         int n_iir, n_fir;
         int iir_cbm, fir_cbm;
         int coefP = 0;
@@ -2471,17 +2471,17 @@ public abstract class FidFilter {
             }
 
             // dump out all non-const coefficients in reverse order
-            len = n_fir > n_iir ? n_fir : n_iir;
+            len = Math.max(n_fir, n_iir);
             for (int a = len - 1; a >= 0; a--) {
                 // output IIR if present and non-const
-                if (a < n_iir && a > 0 && (iir_cbm & (1 << (a < 15 ? a : 15))) == 0) {
+                if (a < n_iir && a > 0 && (iir_cbm & (1 << (Math.min(a, 15)))) == 0) {
                     if (cnt++ < n_coef) {
                         coef[coefP++] = iir_adj * iir[a];
                     }
                 }
 
                 // output FIR if present and non-const
-                if (a < n_fir && (fir_cbm & (1 << (a < 15 ? a : 15))) == 0) {
+                if (a < n_fir && (fir_cbm & (1 << (Math.min(a, 15)))) == 0) {
                     if (cnt++ < n_coef) {
                         coef[coefP++] = fir[a];
                     }
@@ -2500,11 +2500,11 @@ public abstract class FidFilter {
      * List all the known filters to the given file handle
      */
     public void fid_list_filters(OutputStream out) throws IOException {
-        for (int a = 0; a < filter.length; a++) {
+        for (Filter value : filter) {
             byte[] buf = new byte[4096];
-            expand_spec(buf, buf.length, filter[a].format.getBytes());
+            expand_spec(buf, buf.length, value.format.getBytes());
             out.write(String.format("%s\n    ", new String(buf)).getBytes());
-            expand_spec(buf, buf.length, filter[a].text.getBytes());
+            expand_spec(buf, buf.length, value.text.getBytes());
             out.write(String.format("%s\n", new String(buf)).getBytes());
         }
     }
@@ -2517,25 +2517,27 @@ public abstract class FidFilter {
     public int fid_list_filters_buf(String buf, int bufend) {
         byte[] tmp = new byte[bufend];
 
-        for (int a = 0; a < filter.length; a++) {
-            expand_spec(tmp, tmp.length, filter[a].format.getBytes());
-            buf += String.format("%s\n    ", new String(tmp));
-            if (buf.length() >= bufend) {
+        StringBuilder bufBuilder = new StringBuilder(buf);
+        for (Filter value : filter) {
+            expand_spec(tmp, tmp.length, value.format.getBytes());
+            bufBuilder.append(String.format("%s\n    ", new String(tmp)));
+            if (bufBuilder.length() >= bufend) {
                 return 0;
             }
-            expand_spec(tmp, tmp.length, filter[a].text.getBytes());
-            buf += String.format("%s\n", new String(tmp));
-            if (buf.length() >= bufend) {
+            expand_spec(tmp, tmp.length, value.text.getBytes());
+            bufBuilder.append(String.format("%s\n", new String(tmp)));
+            if (bufBuilder.length() >= bufend) {
                 return 0;
             }
         }
+        buf = bufBuilder.toString();
         return 1;
     }
 
     /**
      * Do a convolution of parameters in place
      */
-    private final int convolve(double[] dst, int n_dst, double[] src, int n_src) {
+    private static int convolve(double[] dst, int n_dst, double[] src, int n_src) {
         int len = n_dst + n_src - 1;
 
         for (int a = len - 1; a >= 0; a--) {
@@ -2795,16 +2797,11 @@ public abstract class FidFilter {
             String buf;
             int len;
             byte[] rv;
-            switch (sp.n_freq) {
-            case 1:
-                buf = String.format("/%s%.15f", sp.adj != 0 ? "=" : "", sp.f0);
-                break;
-            case 2:
-                buf = String.format("/%s%.15g-%.15f", sp.adj != 0 ? "=" : "", sp.f0, sp.f1);
-                break;
-            default:
-                buf = "";
-            }
+            buf = switch (sp.n_freq) {
+                case 1 -> String.format("/%s%.15f", sp.adj != 0 ? "=" : "", sp.f0);
+                case 2 -> String.format("/%s%.15g-%.15f", sp.adj != 0 ? "=" : "", sp.f0, sp.f1);
+                default -> "";
+            };
             len = buf.length();
             rv = new byte[sp.minlen + len + 1];
             System.arraycopy(spec, 0, rv, 0, sp.minlen);
@@ -2836,7 +2833,7 @@ public abstract class FidFilter {
      * created simply by allocating the memory and filling them in (see
      * fidlib.h).
      */
-    protected List<FidFilter> fid_cv_array(double[] arr) {
+    protected static List<FidFilter> fid_cv_array(double[] arr) {
         FidFilter ff;
         List<FidFilter> rv;
         int n_head = 0;
@@ -2888,7 +2885,8 @@ public abstract class FidFilter {
      * otherwise they are left untouched. The newly allocated resultant filter
      * is returned, which should be released with free() when finished with.
      */
-    protected List<FidFilter> fid_cat(int freeme, List<FidFilter> ... ap) {
+    @SafeVarargs
+    protected static List<FidFilter> fid_cat(int freeme, List<FidFilter>... ap) {
         List<FidFilter> rv;
         FidFilter ff;
         int len = 0;
@@ -2898,9 +2896,8 @@ public abstract class FidFilter {
         // find the memory required to store the combined filter
         int apP = 0;
         for (List<FidFilter> ff0 : ap) {
-            Iterator<FidFilter> i = ff0.iterator();
-            while (i.hasNext()) {
-                ff = i.next();
+            for (FidFilter fidFilter : ff0) {
+                ff = fidFilter;
                 if (ff.type == 0) {
                     break;
                 }
@@ -2914,9 +2911,8 @@ public abstract class FidFilter {
         apP = 0;
         List<FidFilter> ff0;
         while ((ff0 = ap[apP++]) != null) {
-            Iterator<FidFilter> i = ff0.iterator();
-            while (i.hasNext()) {
-                ff = i.next();
+            for (FidFilter fidFilter : ff0) {
+                ff = fidFilter;
                 dst.add(ff);
                 cnt++;
             }
@@ -2931,7 +2927,7 @@ public abstract class FidFilter {
     //
 
     /** Skip white space (including comments) */
-    private void skipWS(String[] pp) {
+    private static void skipWS(String[] pp) {
         int p = 0;
 
         while (p < pp[0].length()) {
@@ -2955,7 +2951,7 @@ public abstract class FidFilter {
      * or error, else 1: success. Error is indicated when the word doesn't fit
      * in the buffer.
      */
-    private int grabWord(String[] pp, String buf, int buflen) {
+    private static int grabWord(String[] pp, byte[] buf, int buflen) {
         int p = 0, q;
         int len;
 
@@ -2977,14 +2973,14 @@ public abstract class FidFilter {
             return 0;
         }
 
-        buf = pp[0].substring(p, len);
+        System.arraycopy(pp[0].substring(p, len).getBytes(), 0, buf, 0, len);
 
         pp[0] = pp[0].substring(q);
         return 1;
     }
 
     /** */
-    private final int INIT_LEN = 128;
+    private static final int INIT_LEN = 128;
 
     /**
      * Parse an entire filter specification, perhaps consisting of several FIR, IIR
@@ -3012,7 +3008,7 @@ public abstract class FidFilter {
 
         while (true) {
             rew = p;
-            if (grabWord(pp, new String(buf), buf.length) == 0) {
+            if (grabWord(pp, buf, buf.length) == 0) {
                 if (pp[0].charAt(p) != 0) {
                     throw new IllegalArgumentException("Filter element unexpectedly long -- syntax error?");
                 }
@@ -3098,7 +3094,7 @@ public abstract class FidFilter {
                 // generate the filter
                 if (sp.adj == 0) {
                     ff = filter[sp.fi].rout(rate, f0, f1, sp.order, sp.n_arg, sp.argarr);
-                } else if (filter[sp.fi].format.indexOf("#R") != -1) {
+                } else if (filter[sp.fi].format.contains("#R")) {
                     ff = auto_adjust_dual(sp, rate, f0, f1);
                 } else {
                     ff = auto_adjust_single(sp, rate, f0);
@@ -3119,7 +3115,7 @@ public abstract class FidFilter {
             // see how many more coefficients we can pick up
             while (true) {
                 rew = p;
-                if (grabWord(pp, new String(buf), buf.length) == 0) {
+                if (grabWord(pp, buf, buf.length) == 0) {
                     if (pp[0].charAt(p) != 0) {
                         throw new IllegalArgumentException("Filter element unexpectedly long -- syntax error?");
                     }
@@ -3135,9 +3131,6 @@ public abstract class FidFilter {
                 curr.len++;
             }
             typ = 0;
-            continue;
         }
     }
 }
-
-/* */

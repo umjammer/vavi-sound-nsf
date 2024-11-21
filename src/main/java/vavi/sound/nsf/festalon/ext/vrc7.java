@@ -105,5 +105,3 @@ public class vrc7 extends ExpSound {
         this.channels = 6;
     }
 }
-
-/* */

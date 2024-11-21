@@ -41,20 +41,18 @@ public class vrc6 extends ExpSound {
     private int disabled;
     private NesApu gapu;
 
-    private Writer sWriter = new Writer() {
-        public void exec(int address, int value) {
+    private Writer sWriter = (address, value) -> {
 
-            address &= 0xF003;
-            if (address >= 0x9000 && address <= 0x9002) {
-                doSQV1HQ();
-                vpsg[address & 3] = (byte) value;
-            } else if (address >= 0xa000 && address <= 0xa002) {
-                doSQV2HQ();
-                vpsg[4 | (address & 3)] = (byte) value;
-            } else if (address >= 0xb000 && address <= 0xb002) {
-                doSawVHQ();
-                vpsg2[address & 3] = (byte) value;
-            }
+        address &= 0xF003;
+        if (address >= 0x9000 && address <= 0x9002) {
+            doSQV1HQ();
+            vpsg[address & 3] = (byte) value;
+        } else if (address >= 0xa000 && address <= 0xa002) {
+            doSQV2HQ();
+            vpsg[4 | (address & 3)] = (byte) value;
+        } else if (address >= 0xb000 && address <= 0xb002) {
+            doSawVHQ();
+            vpsg2[address & 3] = (byte) value;
         }
     };
 
@@ -148,5 +146,3 @@ public class vrc6 extends ExpSound {
         apu.cpu.setWriter(0x8000, 0xbfff, sWriter, this);
     }
 }
-
-/* */

@@ -8,16 +8,15 @@ package vavi.sound.nsf.festalon;
 
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.concurrent.CountDownLatch;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
 import javax.sound.sampled.SourceDataLine;
 
 import org.junit.jupiter.api.Disabled;
@@ -52,7 +51,7 @@ class NsfTest {
         String fn = "src/test/resources/smb1.nsf";
         File file = new File(fn);
         byte[] buffer = new byte[(int) file.length()];
-        InputStream is = new FileInputStream(file);
+        InputStream is = Files.newInputStream(file.toPath());
         int l = 0;
         while (l < buffer.length) {
             int r = is.read(buffer, l, buffer.length - l);
@@ -80,11 +79,9 @@ Debug.println("nsf: " + StringUtil.paramString(nsf));
         SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
         line.open(audioFormat);
         volume(line, .2d);
-        line.addLineListener(new LineListener() {
-            public void update(LineEvent ev) {
-                if (LineEvent.Type.STOP == ev.getType()) {
-                    cdl.countDown();
-                }
+        line.addLineListener(ev -> {
+            if (LineEvent.Type.STOP == ev.getType()) {
+                cdl.countDown();
             }
         });
 //        line.start();
@@ -108,5 +105,3 @@ Debug.printf("%04x, wave: %d", r[0], (wave != null ? wave.length : null));
         line.close();
     }
 }
-
-/* */

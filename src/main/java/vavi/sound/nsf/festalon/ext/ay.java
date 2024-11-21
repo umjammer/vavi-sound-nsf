@@ -138,5 +138,3 @@ public class ay extends ExpSound {
         apu.cpu.setWriter(0xe000, 0xffff, Mapper69_SWH, this);
     }
 }
-
-/* */

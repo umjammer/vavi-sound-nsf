@@ -67,7 +67,7 @@ public class fds extends ExpSound {
     private NesApu gapu;
 
     /** */
-    private final void redoCO() {
+    private void redoCO() {
         int k = amplitude[0];
         if (k > 0x20) {
             k = 0x20;
@@ -76,17 +76,13 @@ public class fds extends ExpSound {
     }
 
     /** */
-    private Reader sReader = new Reader() {
-        public int exec(int address, int dataBus) {
+    private Reader sReader = (address, dataBus) -> {
 
-            switch (address & 0xf) {
-            case 0x0:
-                return (amplitude[0] | (dataBus & 0xc0));
-            case 0x2:
-                return (amplitude[1] | (dataBus & 0xc0));
-            }
-            return dataBus;
-        }
+        return switch (address & 0xf) {
+            case 0x0 -> (amplitude[0] | (dataBus & 0xc0));
+            case 0x2 -> (amplitude[1] | (dataBus & 0xc0));
+            default -> dataBus;
+        };
     };
 
     /** */
@@ -166,24 +162,18 @@ public class fds extends ExpSound {
     }
 
     /** */
-    private Reader waveReader = new Reader() {
-        public int exec(int address, int dataBus) {
-            return (cwave[address & 0x3f] | (dataBus & 0xc0));
+    private Reader waveReader = (address, dataBus) -> (cwave[address & 0x3f] | (dataBus & 0xc0));
+
+    /** */
+    private Writer waveWriter = (address, value) -> {
+        // printf("$%04x:$%02x, %d\n",A,V,SPSG[0x9]&0x80);
+        if ((spsg[0x9] & 0x80) != 0) {
+            cwave[address & 0x3f] = (byte) (value & 0x3F);
         }
     };
 
     /** */
-    private Writer waveWriter = new Writer() {
-        public void exec(int address, int value) {
-            // printf("$%04x:$%02x, %d\n",A,V,SPSG[0x9]&0x80);
-            if ((spsg[0x9] & 0x80) != 0) {
-                cwave[address & 0x3f] = (byte) (value & 0x3F);
-            }
-        }
-    };
-
-    /** */
-    private final void clockRised() {
+    private void clockRised() {
         if (clockcount == 0) {
             b19shiftreg60 = (spsg[0x2] | ((spsg[0x3] & 0xF) << 8));
             b17latch76 = (spsg[0x6] | ((spsg[0x07] & 0xF) << 8)) + b17latch76;
@@ -228,7 +218,7 @@ public class fds extends ExpSound {
     }
 
     /** */
-    private final void clockFallen() {
+    private void clockFallen() {
         // if(!(SPSG[0x7]&0x80))
         {
             if ((b8shiftreg88 & 1) != 0) // || clockcount==7)
@@ -241,7 +231,7 @@ public class fds extends ExpSound {
     }
 
     /** */
-    private final int doSound() {
+    private int doSound() {
         count += cycles;
         if (count >= ((long) 1 << 40)) {
             count -= (long) 1 << 40;
@@ -309,5 +299,3 @@ public class fds extends ExpSound {
         this.channels = 1;
     }
 }
-
-/* */

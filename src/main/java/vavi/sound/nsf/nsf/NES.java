@@ -67,7 +67,7 @@ public final class NES {
     }
 
 
-    public final int stopAddr = CPU.RESET_VECTOR_ADDR;
+    public static final int stopAddr = CPU.RESET_VECTOR_ADDR;
     public final AtomicInteger numInstrs = new AtomicInteger(0);
     public final AtomicInteger numCycles = new AtomicInteger(0);
 

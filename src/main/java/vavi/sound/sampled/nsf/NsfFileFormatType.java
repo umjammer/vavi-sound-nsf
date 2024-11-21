@@ -32,5 +32,3 @@ public class NsfFileFormatType extends AudioFileFormat.Type {
         super(name, extension);
     }
 }
-
-/* */

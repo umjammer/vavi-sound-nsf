@@ -6,6 +6,8 @@
 
 package vavi.sound.nsf.festalon;
 
+import java.util.logging.Level;
+
 import vavi.sound.fidlib.FidFilter;
 import vavi.sound.fir.Constants;
 import vavi.util.Debug;
@@ -143,7 +145,7 @@ public class Filter {
             try {
                 fid = FidFilter.Factory.newInstance().fid_parse(imrate, spec);
 for (FidFilter f : fid) {
- Debug.println(f);
+ Debug.println(Level.FINE, f);
 }
                 return 1;
             } catch (Exception e) {
@@ -223,5 +225,3 @@ if (fid != null) {
         return count;
     }
 }
-
-/* */

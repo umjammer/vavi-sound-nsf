@@ -1,8 +1,5 @@
 package vavi.sound.nsf.festalon;
 
-import vavi.util.Debug;
-import vavi.util.StringUtil;
-
 /**
  * X6502.
  *
@@ -11,7 +8,7 @@ import vavi.util.StringUtil;
  */
 public class X6502 {
     /** */
-    private class WriteMap {
+    private static class WriteMap {
         Writer writer;
         Object _private;
         WriteMap next;
@@ -77,17 +74,11 @@ public class X6502 {
     static final int FCEU_IQFCOUNT = 0x200;
 
     /** */
-    private Writer nullWriter = new Writer() {
-        public void exec(int address, int value) {
-        }
+    private Writer nullWriter = (address, value) -> {
     };
 
     /** */
-    private Reader nullReader = new Reader() {
-        public int exec(int address, int dataBus) {
-            return dataBus;
-        }
-    };
+    private Reader nullReader = (address, dataBus) -> dataBus;
 
     /** */
     public void setReader(int start, int end, Reader reader, Object _private) {
@@ -125,7 +116,7 @@ public class X6502 {
     }
 
     /** */
-    private final void addCYC(int x) {
+    private void addCYC(int x) {
         int __x = x;
         tcount += __x;
         count -= __x * 48;
@@ -133,7 +124,7 @@ public class X6502 {
 
     /** */
     private int readMemory(int address) {
-//Debug.println("address: " + StringUtil.toHex4(address));
+//Debug.println(Level.FINER, "address: " + StringUtil.toHex4(address));
         return db = readers[address].exec(address, db); // AReadPrivate[A]
     }
 
@@ -180,7 +171,7 @@ public class X6502 {
 
     /** */
     private void push(int v) {
-//Debug.println("s: " + StringUtil.toHex4(s) + ", " + s);
+//Debug.println(Level.FINER, "s: " + StringUtil.toHex4(s) + ", " + s);
         writeRAM(0x100 + s, v);
         s--;
 if (s < 0) { // TODO
@@ -1997,5 +1988,3 @@ if (s < 0) { // TODO
         }
     }
 }
-
-/* */

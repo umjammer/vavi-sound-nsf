@@ -45,7 +45,12 @@ import vavi.util.Debug;
  */
 public class Nsf2PcmAudioInputStream extends AudioInputStream {
 
-    /** */
+    /** use format's properties */
+    public Nsf2PcmAudioInputStream(InputStream stream, AudioFormat format, long length) throws IOException {
+        this(stream, format, length, format.properties());
+    }
+
+    /** format's properties are ignored */
     public Nsf2PcmAudioInputStream(InputStream stream, AudioFormat format, long length, Map<String, Object> props) throws IOException {
         super(new OutputEngineInputStream(new NSFOutputEngine(stream, props)), format, length);
     }
@@ -57,23 +62,23 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
         private OutputStream out;
 
         /** */
-        private NES nes;
+        private final NES nes;
 
         /** */
-        private BlockingDeque<Byte> buffer = new LinkedBlockingDeque<>();
+        private final BlockingDeque<Byte> buffer = new LinkedBlockingDeque<>();
 
         int maxPlaySecs = 90;
         int maxSilenceSecs = 3;
 
-        private Map<String, Object> props;
+        private final Map<String, Object> props;
 
-        private Thread maxThreadFactory(Runnable r) {
+        private static Thread maxThreadFactory(Runnable r) {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
             return thread;
         }
 
-        private ExecutorService executor = Executors.newSingleThreadExecutor(this::maxThreadFactory);
+        private final ExecutorService executor = Executors.newSingleThreadExecutor(NSFOutputEngine::maxThreadFactory);
 
         /** */
         public NSFOutputEngine(InputStream in, Map<String, Object> props) throws IOException {
@@ -105,6 +110,8 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
         /** the thread which executes buffer#take() */
         private Thread blockingDequeThread;
 
+        private volatile boolean finished = false;
+
         /** */
         public void initialize(OutputStream out) throws IOException {
             if (this.out != null) {
@@ -113,6 +120,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
                 this.out = new BufferedOutputStream(out);
             }
 
+Debug.println(Level.FINE, "props from target AudioFormat: " + props);
             if (props.containsKey("maxPlaySecs")) {
                 maxPlaySecs = (int) props.get("maxPlaySecs");
             }
@@ -146,7 +154,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
                             try {
                                 buffer.put(b);
                             } catch (InterruptedException e) {
-                                e.printStackTrace(); // TODO consider more
+                                Debug.printStackTrace(e); // TODO consider more
                             }
                         }
 
@@ -154,12 +162,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
                         public void finish() {
                             blockingDequeThread.interrupt();
 Debug.println(Level.FINE, "sink finish");
-                            try {
-                                out.close(); // TODO wait write finished
-                            } catch (IOException e) {
-                                finish();
-                                throw new UncheckedIOException(e);
-                            }
+                            finished = true;
                         }
                     });
                 } catch (IOException e) {
@@ -167,32 +170,24 @@ Debug.println(Level.FINE, "sink finish");
                 }
             });
 
-            try {
-                // rendering is too slow, wait buffering
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             blockingDequeThread = Thread.currentThread();
         }
 
-        byte[] buf = new byte[8192];
+        static final int BUFFER_SIZE = 16;
 
         /** */
         public void execute() throws IOException {
             try {
-                int i = 0;
-                for (; i < buf.length; i++) {
-                    if (i >= 8192 && buffer.peek() == null) {
-                        break;
-                    }
-                    buf[i] = buffer.take();
+                int c = 0;
+                while (buffer.peek() != null && c++ < BUFFER_SIZE) {
+                    out.write(buffer.take());
                 }
-                out.write(buf, 0, i);
-//Debug.println("write: " + i + ", " + buffer.size());
+                if (finished) {
+                    out.close();
+                }
+//Debug.println(Level.FINER, "write: " + i + ", " + buffer.size());
             } catch (InterruptedException e) {
-Debug.println("BlockingDeque#take() interrupted");
+Debug.println(Level.FINE, "BlockingDeque#take() interrupted");
             }
         }
 
@@ -203,5 +198,3 @@ Debug.println(Level.FINE, "engine finish");
         }
     }
 }
-
-/* */

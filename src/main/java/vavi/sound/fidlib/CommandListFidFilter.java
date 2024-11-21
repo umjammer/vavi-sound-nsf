@@ -263,5 +263,3 @@ class CommandListFidFilter extends FidFilter {
         return 0;
     }
 }
-
-/* */

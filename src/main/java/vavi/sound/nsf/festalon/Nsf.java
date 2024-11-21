@@ -26,6 +26,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import vavi.sound.nsf.festalon.ext.ay;
 import vavi.sound.nsf.festalon.ext.fds;
@@ -139,10 +140,10 @@ class Nsf extends Plugin {
             dis.readFully(h.gameName, 0, 32);
             dis.readFully(h.artist, 0, 32);
             dis.readFully(h.copyright, 0, 32);
-            /** Unused */
+            /* Unused */
             dis.readFully(h.ntscSpeed, 0, 2);
             dis.readFully(h.bankSwitch, 0, 8);
-            /** Unused */
+            /* Unused */
             dis.readFully(h.palSpeed, 0, 2);
             h.videoSystem = dis.readUnsignedByte();
             h.soundChip = dis.readUnsignedByte();
@@ -152,47 +153,46 @@ class Nsf extends Plugin {
 
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Header [id=");
-            builder.append(Arrays.toString(id));
-            builder.append(", version=");
-            builder.append(version);
-            builder.append(", totalSongs=");
-            builder.append(totalSongs);
-            builder.append(", startingSong=");
-            builder.append(startingSong);
-            builder.append(", loadAddressLow=");
-            builder.append(loadAddressLow);
-            builder.append(", loadAddressHigh=");
-            builder.append(loadAddressHigh);
-            builder.append(", initAddressLow=");
-            builder.append(initAddressLow);
-            builder.append(", initAddressHigh=");
-            builder.append(initAddressHigh);
-            builder.append(", playAddressLow=");
-            builder.append(playAddressLow);
-            builder.append(", playAddressHigh=");
-            builder.append(playAddressHigh);
-            builder.append(", gameName=");
-            builder.append(Arrays.toString(gameName));
-            builder.append(", artist=");
-            builder.append(Arrays.toString(artist));
-            builder.append(", copyright=");
-            builder.append(Arrays.toString(copyright));
-            builder.append(", ntscSpeed=");
-            builder.append(Arrays.toString(ntscSpeed));
-            builder.append(", bankSwitch=");
-            builder.append(Arrays.toString(bankSwitch));
-            builder.append(", palSpeed=");
-            builder.append(Arrays.toString(palSpeed));
-            builder.append(", videoSystem=");
-            builder.append(videoSystem);
-            builder.append(", soundChip=");
-            builder.append(soundChip);
-            builder.append(", expansion=");
-            builder.append(Arrays.toString(expansion));
-            builder.append("]");
-            return builder.toString();
+            String builder = "Header [id=" +
+                    Arrays.toString(id) +
+                    ", version=" +
+                    version +
+                    ", totalSongs=" +
+                    totalSongs +
+                    ", startingSong=" +
+                    startingSong +
+                    ", loadAddressLow=" +
+                    loadAddressLow +
+                    ", loadAddressHigh=" +
+                    loadAddressHigh +
+                    ", initAddressLow=" +
+                    initAddressLow +
+                    ", initAddressHigh=" +
+                    initAddressHigh +
+                    ", playAddressLow=" +
+                    playAddressLow +
+                    ", playAddressHigh=" +
+                    playAddressHigh +
+                    ", gameName=" +
+                    Arrays.toString(gameName) +
+                    ", artist=" +
+                    Arrays.toString(artist) +
+                    ", copyright=" +
+                    Arrays.toString(copyright) +
+                    ", ntscSpeed=" +
+                    Arrays.toString(ntscSpeed) +
+                    ", bankSwitch=" +
+                    Arrays.toString(bankSwitch) +
+                    ", palSpeed=" +
+                    Arrays.toString(palSpeed) +
+                    ", videoSystem=" +
+                    videoSystem +
+                    ", soundChip=" +
+                    soundChip +
+                    ", expansion=" +
+                    Arrays.toString(expansion) +
+                    "]";
+            return builder;
         }
     }
 
@@ -312,16 +312,16 @@ class Nsf extends Plugin {
     /** */
     private void loadNSF(byte[] buf, int size, int info_only) throws IOException {
         Header nsfHeader = Header.readFrom(new ByteArrayInputStream(buf));
-Debug.println(nsfHeader);
+Debug.println(Level.FINE, nsfHeader);
 
         nsfHeader.gameName[31] = nsfHeader.artist[31] = nsfHeader.copyright[31] = 0;
 
         gameName = new String(nsfHeader.gameName);
-Debug.printf("gameName: %s\n", gameName);
+Debug.printf(Level.FINE, "gameName: %s\n", gameName);
         artist = new String(nsfHeader.artist);
-Debug.printf("artist: %s\n", artist);
+Debug.printf(Level.FINE, "artist: %s\n", artist);
         copyright = new String(nsfHeader.copyright);
-Debug.printf("copyright: %s\n", copyright);
+Debug.printf(Level.FINE, "copyright: %s\n", copyright);
 
         loadAddr = nsfHeader.loadAddressLow;
         loadAddr |= nsfHeader.loadAddressHigh << 8;
@@ -329,22 +329,22 @@ Debug.printf("copyright: %s\n", copyright);
         if (loadAddr < 0x6000) { // A buggy NSF...
             loadAddr += 0x8000;
         }
-Debug.printf("loadAddr: %04x\n", loadAddr);
+Debug.printf(Level.FINE, "loadAddr: %04x\n", loadAddr);
 
         initAddr = nsfHeader.initAddressLow;
         initAddr |= nsfHeader.initAddressHigh << 8;
-Debug.printf("initAddr: %04x\n", initAddr);
+Debug.printf(Level.FINE, "initAddr: %04x\n", initAddr);
 
         playAddr = nsfHeader.playAddressLow;
         playAddr |= nsfHeader.playAddressHigh << 8;
-Debug.printf("playAddr: %04x\n", playAddr);
+Debug.printf(Level.FINE, "playAddr: %04x\n", playAddr);
 
         nsfSize = size - 0x80;
-Debug.printf("nsfSize: %04x\n", nsfSize);
+Debug.printf(Level.FINE, "nsfSize: %04x\n", nsfSize);
 
         nsfMaxBank = (nsfSize + (loadAddr & 0xfff) + 4095) / 4096;
         nsfMaxBank = uppow2(nsfMaxBank);
-Debug.printf("nsfMaxBank: %04x\n", nsfMaxBank);
+Debug.printf(Level.FINE, "nsfMaxBank: %04x\n", nsfMaxBank);
 
         if (info_only == 0) {
             nsfData = new byte[nsfMaxBank * 4096];
@@ -356,13 +356,13 @@ Debug.printf("nsfMaxBank: %04x\n", nsfMaxBank);
             System.arraycopy(buf, 0, nsfData, nsfRawDataP, nsfSize);
 
             nsfMaxBank--;
-Debug.println("here 1");
+Debug.println(Level.FINE, "here 1");
         } else if (info_only == FESTAGFI_TAGS_DATA) {
             nsfData = new byte[nsfSize];
             nsfRawData = nsfData;
             nsfRawDataSize = nsfSize;
             System.arraycopy(buf, 0, nsfData, 0, nsfSize);
-Debug.println("here 2");
+Debug.println(Level.FINE, "here 2");
         }
 
         videoSystem = nsfHeader.videoSystem;
@@ -442,7 +442,7 @@ Debug.println("here 2");
             Arrays.fill(exWRam, 0, 32768 + 8192, (byte) 0x00);
             cpu.setWriter(0x6000, 0xdfff, cart.cartWriter, cart);
             cpu.setReader(0x6000, 0xffff, cart.cartReader, cart);
-Debug.println("here 1");
+Debug.println(Level.FINE, "here 1");
         } else {
             Arrays.fill(exWRam, 0, 8192, (byte) 0x00);
             cpu.setReader(0x6000, 0x7fff, cart.cartReader, cart);
@@ -453,7 +453,7 @@ Debug.println("here 1");
 
             cart.setPrg8r(1, 0x6000, 0);
             cpu.setReader(0x8000, 0xffff, cart.cartReader, cart);
-Debug.println("here 2 *");
+Debug.println(Level.FINE, "here 2 *");
         }
 
         bsOn = 0;
@@ -570,7 +570,7 @@ Debug.println("here 2 *");
         // routine.
         if (cpu.pc == 0x3800 || songReload != 0) {
             if (songReload != 0) {
-Debug.println("clri");
+Debug.println(Level.FINE, "clri");
                 clri();
             }
 
@@ -685,7 +685,7 @@ Debug.println("clri");
                     nsfSize = chunk_size;
                     nbuf = buf;
                 } else if (t.equals("BANK")) {
-                    dis.readFully(bankSwitch, size, (chunk_size > 8) ? 8 : chunk_size);
+                    dis.readFully(bankSwitch, size, Math.min(chunk_size, 8));
                 } else if (t.equals("NEND")) {
                     if (chunk_size == 0 && nbuf != null) {
                         nsfMaxBank = ((nsfSize + (loadAddr & 0xfff) + 4095) / 4096);
@@ -783,7 +783,7 @@ e.printStackTrace();
     }
 
     /** */
-    private final int uppow2(int n) {
+    private static int uppow2(int n) {
         for (int x = 31; x >= 0; x--) {
             if ((n & (1 << x)) != 0) {
                 if ((1 << x) != n) {
@@ -930,5 +930,3 @@ e.printStackTrace();
         apu.waveFinal = new float[apu.waveFinalLen];
     }
 }
-
-/* */

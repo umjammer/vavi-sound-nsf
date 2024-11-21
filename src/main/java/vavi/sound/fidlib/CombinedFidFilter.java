@@ -97,7 +97,7 @@ class CombinedFidFilter extends FidFilter {
             throw new IllegalArgumentException("expecting IIR+FIR in flattened filter");
         }
 
-        this.n_buf = this.n_fir > this.n_iir ? this.n_fir : this.n_iir;
+        this.n_buf = Math.max(this.n_fir, this.n_iir);
 
         // buffer
         if (this.magic != 0x64966325) {
@@ -116,5 +116,3 @@ class CombinedFidFilter extends FidFilter {
         }
     }
 }
-
-/* */

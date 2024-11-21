@@ -16,5 +16,3 @@ package vavi.sound.nsf.festalon;
 public interface Writer extends IO {
     void exec(int address, int value);
 }
-
-/* */
