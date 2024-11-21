@@ -6,11 +6,13 @@
 
 package vavi.sound.nsf.festalon;
 
-import java.util.logging.Level;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 
 import vavi.sound.fidlib.FidFilter;
 import vavi.sound.fir.Constants;
-import vavi.util.Debug;
+
+import static java.lang.System.getLogger;
 
 
 /**
@@ -20,6 +22,8 @@ import vavi.util.Debug;
  * @version 0.00 060410 nsano initial version <br>
  */
 public class Filter {
+    private static final Logger logger = getLogger(Filter.class.getName());
+
     static final int NCOEFFS = 512;
     static final int FFI_FLOAT = 0;
     static final int FFI_INT16 = 1;
@@ -145,7 +149,7 @@ public class Filter {
             try {
                 fid = FidFilter.Factory.newInstance().fid_parse(imrate, spec);
 for (FidFilter f : fid) {
- Debug.println(Level.FINE, f);
+ logger.log(Level.DEBUG, f);
 }
                 return 1;
             } catch (Exception e) {
@@ -210,7 +214,7 @@ if (fid != null) {
 //            doot.end_of_input = 0;
 //
 //            if ((error = src_process(lrh, doot))) {
-//                 System.err.printf("Eeeek: %s, %d, %d\n", src_strerror(error), boobuf, out);
+//logger.log(Level.DEBUG, "Eeeek: %s, %d, %d".formatted(src_strerror(error), boobuf, out));
 //                 exit(1);
 //            }
 //

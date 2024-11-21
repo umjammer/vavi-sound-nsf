@@ -1,5 +1,11 @@
 package vavi.sound.nsf.festalon;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+
+import static java.lang.System.getLogger;
+
+
 /**
  * X6502.
  *
@@ -7,6 +13,9 @@ package vavi.sound.nsf.festalon;
  * @version 0.00 060501 nsano initial version <br>
  */
 public class X6502 {
+
+    private static final Logger logger = getLogger(X6502.class.getName());
+
     /** */
     private static class WriteMap {
         Writer writer;
@@ -124,7 +133,7 @@ public class X6502 {
 
     /** */
     private int readMemory(int address) {
-//Debug.println(Level.FINER, "address: " + StringUtil.toHex4(address));
+//logger.log(Level.TRACE, "address: " + StringUtil.toHex4(address));
         return db = readers[address].exec(address, db); // AReadPrivate[A]
     }
 
@@ -171,7 +180,7 @@ public class X6502 {
 
     /** */
     private void push(int v) {
-//Debug.println(Level.FINER, "s: " + StringUtil.toHex4(s) + ", " + s);
+//logger.log(Level.TRACE, "s: %1$04X, %1$s".formatted(s));
         writeRAM(0x100 + s, v);
         s--;
 if (s < 0) { // TODO
@@ -818,7 +827,7 @@ if (s < 0) { // TODO
 
             mooPI = p;
             b1 = readMemory(pc);
-// System.err.printf("%04x:%02x\n", _PC, b1);
+//logger.log(Level.DEBUG, "%04x:%02x".firmatted(_PC, b1));
             addCYC(cycTable[b1]);
 
             temp = tcount;
@@ -827,7 +836,7 @@ if (s < 0) { // TODO
             timestamp += temp;
             apu.hookSoundCPU(temp);
 
-// System.err.printf("%04x:$%02x\n", _PC, b1);
+//logger.log(Level.DEBUG, "%04x:$%02x".formatted(_PC, b1));
             pc++;
             switch (b1) {
             case 0x00: // BRK
@@ -881,7 +890,7 @@ if (s < 0) { // TODO
                 int tmp = getAB();
                 pc = readMemory(tmp);
                 pc |= readMemory(((tmp + 1) & 0x00ff) | (tmp & 0xff00)) << 8;
-// System.err.printf("%04x, %04x, %02x\n", tmp, pc, readMemory(x, 0xe2));
+//logger.log(Level.DEBUG, "%04x, %04x, %02x".formatted(tmp, pc, readMemory(x, 0xe2)));
             }
                 break;
             case 0x20: { // JSR
@@ -1367,9 +1376,10 @@ if (s < 0) { // TODO
                 break;
 
 //          default:
-// System.err.printf("Bad %02x at $%04x\n", b1, pc);
+//logger.log(Level.DEBUG, "Bad %02x at $%04x".formatted(b1, pc));
 //              break;
-// #ifdef moo
+
+//#ifdef moo
 
             // Here comes the undocumented instructions block. Note that this
             // implementation may be "wrong". If so, please tell me.
@@ -1969,7 +1979,7 @@ if (s < 0) { // TODO
         }
 
         if ((apu.irqFrameMode == 0 || (apu.dmcFormat & 0xc0) == 0x80) && (mooPI & I_FLAG) == 0) {
-            System.err.println("abnormal skip");
+logger.log(Level.DEBUG, "abnormal skip");
             while (count > 0) {
                 count -= 7 * 48;
                 timestamp += 7;

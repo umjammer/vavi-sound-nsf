@@ -88,9 +88,9 @@ Debug.println(targetAudioFormat);
 
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, targetAudioFormat, AudioSystem.NOT_SPECIFIED);
         SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
-        Debug.println(line.getClass().getName());
+Debug.println(line.getClass().getName());
         line.addLineListener(event -> Debug.println(event.getType()));
-        Debug.println("buffer size: " + line.getBufferSize());
+Debug.println("buffer size: " + line.getBufferSize());
 
         line.open(targetAudioFormat);
         volume(line, volume);

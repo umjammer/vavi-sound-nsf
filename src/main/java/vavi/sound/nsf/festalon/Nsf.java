@@ -25,8 +25,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
-import java.util.logging.Level;
 
 import vavi.sound.nsf.festalon.ext.ay;
 import vavi.sound.nsf.festalon.ext.fds;
@@ -34,7 +35,8 @@ import vavi.sound.nsf.festalon.ext.mmc5;
 import vavi.sound.nsf.festalon.ext.n106;
 import vavi.sound.nsf.festalon.ext.vrc6;
 import vavi.sound.nsf.festalon.ext.vrc7;
-import vavi.util.Debug;
+
+import static java.lang.System.getLogger;
 
 
 /**
@@ -44,6 +46,9 @@ import vavi.util.Debug;
  * @version 0.00 060310 nsano initial version <br>
  */
 class Nsf extends Plugin {
+
+    private static final Logger logger = getLogger(Nsf.class.getName());
+
     /** */
     static final int FESTAGFI_TAGS_DATA = 0x2;
     /** */
@@ -312,16 +317,16 @@ class Nsf extends Plugin {
     /** */
     private void loadNSF(byte[] buf, int size, int info_only) throws IOException {
         Header nsfHeader = Header.readFrom(new ByteArrayInputStream(buf));
-Debug.println(Level.FINE, nsfHeader);
+logger.log(Level.DEBUG, nsfHeader);
 
         nsfHeader.gameName[31] = nsfHeader.artist[31] = nsfHeader.copyright[31] = 0;
 
         gameName = new String(nsfHeader.gameName);
-Debug.printf(Level.FINE, "gameName: %s\n", gameName);
+logger.log(Level.DEBUG, "gameName: " + gameName);
         artist = new String(nsfHeader.artist);
-Debug.printf(Level.FINE, "artist: %s\n", artist);
+logger.log(Level.DEBUG, "artist: " + artist);
         copyright = new String(nsfHeader.copyright);
-Debug.printf(Level.FINE, "copyright: %s\n", copyright);
+logger.log(Level.DEBUG, "copyright: " + copyright);
 
         loadAddr = nsfHeader.loadAddressLow;
         loadAddr |= nsfHeader.loadAddressHigh << 8;
@@ -329,22 +334,22 @@ Debug.printf(Level.FINE, "copyright: %s\n", copyright);
         if (loadAddr < 0x6000) { // A buggy NSF...
             loadAddr += 0x8000;
         }
-Debug.printf(Level.FINE, "loadAddr: %04x\n", loadAddr);
+logger.log(Level.DEBUG, "loadAddr: %04x".formatted(loadAddr));
 
         initAddr = nsfHeader.initAddressLow;
         initAddr |= nsfHeader.initAddressHigh << 8;
-Debug.printf(Level.FINE, "initAddr: %04x\n", initAddr);
+logger.log(Level.DEBUG, "initAddr: %04x".formatted(initAddr));
 
         playAddr = nsfHeader.playAddressLow;
         playAddr |= nsfHeader.playAddressHigh << 8;
-Debug.printf(Level.FINE, "playAddr: %04x\n", playAddr);
+logger.log(Level.DEBUG, "playAddr: %04x".formatted(playAddr));
 
         nsfSize = size - 0x80;
-Debug.printf(Level.FINE, "nsfSize: %04x\n", nsfSize);
+logger.log(Level.DEBUG, "nsfSize: %04x".formatted(nsfSize));
 
         nsfMaxBank = (nsfSize + (loadAddr & 0xfff) + 4095) / 4096;
         nsfMaxBank = uppow2(nsfMaxBank);
-Debug.printf(Level.FINE, "nsfMaxBank: %04x\n", nsfMaxBank);
+logger.log(Level.DEBUG, "nsfMaxBank: %04x".formatted(nsfMaxBank));
 
         if (info_only == 0) {
             nsfData = new byte[nsfMaxBank * 4096];
@@ -356,13 +361,13 @@ Debug.printf(Level.FINE, "nsfMaxBank: %04x\n", nsfMaxBank);
             System.arraycopy(buf, 0, nsfData, nsfRawDataP, nsfSize);
 
             nsfMaxBank--;
-Debug.println(Level.FINE, "here 1");
+logger.log(Level.DEBUG, "here 1");
         } else if (info_only == FESTAGFI_TAGS_DATA) {
             nsfData = new byte[nsfSize];
             nsfRawData = nsfData;
             nsfRawDataSize = nsfSize;
             System.arraycopy(buf, 0, nsfData, 0, nsfSize);
-Debug.println(Level.FINE, "here 2");
+logger.log(Level.DEBUG, "here 2");
         }
 
         videoSystem = nsfHeader.videoSystem;
@@ -442,7 +447,7 @@ Debug.println(Level.FINE, "here 2");
             Arrays.fill(exWRam, 0, 32768 + 8192, (byte) 0x00);
             cpu.setWriter(0x6000, 0xdfff, cart.cartWriter, cart);
             cpu.setReader(0x6000, 0xffff, cart.cartReader, cart);
-Debug.println(Level.FINE, "here 1");
+logger.log(Level.DEBUG, "here 1");
         } else {
             Arrays.fill(exWRam, 0, 8192, (byte) 0x00);
             cpu.setReader(0x6000, 0x7fff, cart.cartReader, cart);
@@ -453,7 +458,7 @@ Debug.println(Level.FINE, "here 1");
 
             cart.setPrg8r(1, 0x6000, 0);
             cpu.setReader(0x8000, 0xffff, cart.cartReader, cart);
-Debug.println(Level.FINE, "here 2 *");
+logger.log(Level.DEBUG, "here 2 *");
         }
 
         bsOn = 0;
@@ -570,7 +575,7 @@ Debug.println(Level.FINE, "here 2 *");
         // routine.
         if (cpu.pc == 0x3800 || songReload != 0) {
             if (songReload != 0) {
-Debug.println(Level.FINE, "clri");
+logger.log(Level.DEBUG, "clri");
                 clri();
             }
 
@@ -634,7 +639,7 @@ Debug.println(Level.FINE, "clri");
                 dis.readFully(tb, 0, 4);
                 size -= 4;
 
-                // System.err.printf("\nChunk: %.4s %d\n", tb, chunk_size);
+//logger.log(Level.TRACE, "Chunk: %.4s %d".formatted(tb, chunk_size));
                 String t = new String(tb);
                 if (t.equals("INFO")) {
                     if (chunk_size < 8) {
@@ -725,7 +730,7 @@ Debug.println(Level.FINE, "clri");
 
                     while (count-- > 0) {
                         songLengths[ws] = dis.readInt();
-                        // System.err.printf("%d\n",fe.SongLengths[ws]/1000);
+//logger.log(Level.DEBUG, "%d".firmatted(fe.SongLengths[ws] / 1000));
                         ws++;
                     }
                 } else if (t.equals("fade")) {
@@ -735,7 +740,7 @@ Debug.println(Level.FINE, "clri");
 
                     while (count-- > 0) {
                         songFades[ws] = dis.readInt();
-                        // System.err.printf("%d\n",fe.SongFades[ws]);
+//logger.log(Level.DEBUG, "%d".formatted(fe.SongFades[ws]));
                         ws++;
                     }
                 } else if (t.equals("auth")) {
@@ -759,14 +764,14 @@ Debug.println(Level.FINE, "clri");
                     }
                 } else if (tb[0] >= 'A' && tb[0] <= 'Z') { // Unrecognized
                     // mandatory chunk
-                    // System.err.print("unknown");
+//logger.log(Level.DEBUG, "unknown");
                     return 0;
                 } else {
                     // mmm...store the unknown chunk in memory so it can be used
                     // by
                     // createNSFE()
                     // if necessary.
-                    // System.err.printf("Boop: %.4s\n",tb);
+//logger.log(Level.DEBUG, "Boop: %.4s".firmatted(tb));
                     // NSFExtra = NSFExtra(NSFExtraSize + 8 + chunk_size);
                     System.arraycopy(buf, bufP - 8, nsfExtra, nsfExtraSize, 8 + chunk_size);
                     nsfExtraSize += 8 + chunk_size;
@@ -776,7 +781,7 @@ Debug.println(Level.FINE, "clri");
             }
             return 1;
         } catch (IOException e) {
-e.printStackTrace();
+logger.log(Level.TRACE, e.getMessage(), e);
             assert false;
             return 0;
         }

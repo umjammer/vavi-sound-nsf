@@ -36,3 +36,4 @@ clip.loop(Clip.LOOP_CONTINUOUSLY);
 
  * ~~improve decoding speed (i7 imac)~~
    * on m2 ultra mac no problem
+ * ~~use jpl instead of jul~~

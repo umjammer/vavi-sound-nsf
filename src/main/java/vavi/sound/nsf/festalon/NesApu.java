@@ -20,10 +20,17 @@
 package vavi.sound.nsf.festalon;
 
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
+
+import static java.lang.System.getLogger;
 
 
 public class NesApu {
+
+    private static final Logger logger = getLogger(NesApu.class.getName());
+
     private static class UnitEnvironment {
         byte speed;
         /** Fixed volume(1), and loop(2) */
@@ -386,7 +393,7 @@ public class NesApu {
         } else {
             amp = unitEnvs[i].decVolume;
         }
-// System.err.printf("%d\n", amp);
+//logger.log(Level.DEBUG, "%d".formatted(amp));
         amp <<= SQ_SHIFT;
 
         rThresh = RectDuties[(psg[(i << 2)] & 0xC0) >> 6];
@@ -918,10 +925,10 @@ public class NesApu {
         fhCount -= cycles * 48;
         while (fhCount <= 0) {
             int rest = fhCount / 48;
-// System.err.printf("%8d:%8d\n", x.timestamp, x.timestamp+rest);
+//logger.log(Level.DEBUG, "%8d:%8d".formatted(x.timestamp, x.timestamp+rest));
             cpu.timestamp += rest; // Yet another ugly hack.
             if (cpu.timestamp < lastPoo) {
-                System.err.println("eep");
+                logger.log(Level.DEBUG, "eep");
             }
             updateFrameSound();
             cpu.timestamp -= rest;
@@ -939,7 +946,7 @@ public class NesApu {
                 int rest = dmcAcc;
                 // Unbelievably ugly hack
                 cpu.timestamp += rest;
-// System.err.printf("%8d:%8d\n", x.timestamp, channelBC[4]);
+//logger.log(Level.DEBUG, "%8d:%8d".formatted(x.timestamp, channelBC[4]));
                 doPCM();
                 cpu.timestamp -= rest;
                 rawDALatch = (byte) (rawDALatch + t);
