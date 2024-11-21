@@ -118,7 +118,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
                 this.out = new BufferedOutputStream(out);
             }
 
-Debug.println(Level.FINE, props);
+Debug.println(Level.FINE, "props from target AudioFormat: " + props);
             if (props.containsKey("maxPlaySecs")) {
                 maxPlaySecs = (int) props.get("maxPlaySecs");
             }
