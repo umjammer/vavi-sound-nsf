@@ -26,7 +26,7 @@ public class NsfEncoding extends AudioFormat.Encoding {
      *
      * @param name Name of the NSF encoding.
      */
-    public NsfEncoding(String name) {
+    private NsfEncoding(String name) {
         super(name);
     }
 }
