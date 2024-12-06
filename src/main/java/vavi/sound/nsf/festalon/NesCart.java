@@ -74,19 +74,19 @@ class NesCart {
 //logger.log(Level.TRACE, "0: %04X, %04X\n".formatted(pP, address));
                 pages[addressBase + i] = new Page(p, pP - address);
                 pages[addressBase + i].prgIsRAM = ram;
-logger.log(Level.DEBUG, "1: page: %d, %04X, %04X".formatted(addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer));
+//logger.log(Level.DEBUG, "1: page: %d, %04X, %04X".formatted(addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer));
             }
         } else {
             for (int i = 0; i < (s >> 1); i++) {
                 pages[addressBase + i] = new Page(new byte[0x10000], 0);
                 pages[addressBase + i].prgIsRAM = false;
-logger.log(Level.DEBUG, "3: page: %d, %04X, %04X".formatted(addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer));
+//logger.log(Level.DEBUG, "3: page: %d, %04X, %04X".formatted(addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer));
             }
         }
     }
 
     /** */
-    private byte[] nothing = new byte[8192];
+    private final byte[] nothing = new byte[8192];
 
     /** */
     NesCart() {
@@ -114,7 +114,7 @@ logger.log(Level.DEBUG, "3: page: %d, %04X, %04X".formatted(addressBase + i, pag
     /** */
     Reader cartReader = (address, dataBus) -> {
 //logger.log(Level.TRACE, "cart.read: %04X, %04X, %04X".formated(address >> 11, address, pages[address >> 11].page.length));
-        return pages[address >> 11].read(address);
+        return pages[address >> 11].read(address) & 0xff;
     };
 
     /** */
@@ -127,9 +127,9 @@ logger.log(Level.DEBUG, "3: page: %d, %04X, %04X".formatted(addressBase + i, pag
     /** */
     private Reader cartReaderOB = (address, dataBus) -> {
         if (pages[address >> 11] == null) {
-            return (byte) dataBus;
+            return dataBus;
         }
-        return pages[address >> 11].read(address);
+        return pages[address >> 11].read(address) & 0xff;
     };
 
     /** */

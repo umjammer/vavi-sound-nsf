@@ -22,6 +22,7 @@ import static java.lang.System.getLogger;
  * @version 0.00 060410 nsano initial version <br>
  */
 public class Filter {
+
     private static final Logger logger = getLogger(Filter.class.getName());
 
     static final int NCOEFFS = 512;
@@ -30,24 +31,24 @@ public class Filter {
 
     // ----
     int inputFormat;
-    private int mrindex;
-    private int mrratio;
+    private int mrIndex;
+    private final int mrRatio;
     private double acc1, acc2;
-    private int soundq;
-    private int rate;
-    private float[] coeffs = new float[NCOEFFS];
+    private int soundQ;
+    private final int rate;
+    private final float[] coeffs = new float[NCOEFFS];
     int soundVolume;
     private Object lrh;
-    private double lrhfactor;
-    private float[] boobuf = new float[8192];
+    private final double lrhFactor;
+    private final float[] booBuf = new float[8192];
 
     // 1789772.7272 / 16 / 60 = 1864
     // 1662607.1250 / 16 / 50 = 2078
     // Intermediate rate.
-    private double imrate;
+    private final double imRate;
     private FidFilter[] fid;
 
-    private int cpuext;
+    private int cpuExt;
 
     private void execSexyFilter(float[] in, float[] out, int count) {
         double mul1, mul2, vmul;
@@ -100,7 +101,7 @@ public class Filter {
 
 //      nco = NCOEFFS;
 
-        if (soundq != 0) {
+        if (soundQ != 0) {
             tmp = tabs2[(pal ? 1 : 0)];
             div = 16;
 //          srctype = SRC_SINC_BEST_QUALITY;
@@ -110,7 +111,7 @@ public class Filter {
 //          srctype = SRC_SINC_FASTEST;
         }
 
-        mrratio = div;
+        mrRatio = div;
 //      int max = 0;
         for (x = 0; x < NCOEFFS >> 1; x++) {
             coeffs_i16[x] = coeffs_i16[NCOEFFS - 1 - x] = (short) (tmp[x] * 65536);
@@ -121,19 +122,19 @@ public class Filter {
         }
         this.rate = rate;
 
-        imrate = cpuclock / div;
-        lrhfactor = rate / imrate;
+        imRate = cpuclock / div;
+        lrhFactor = rate / imRate;
 
 //      int error;
 //      lrh = src_new(srctype, 1, error);
 
-//      cpuext = ac_mmflag();
+//      cpuExt = ac_mmflag();
 
         inputFormat = FFI_FLOAT;
     }
 
     /** */
-    public int setLowpass(boolean on, int corner, int order) {
+    public int setLowPass(boolean on, int corner, int order) {
         // FESTAFILT *ff = fe->apu->ff;
         String[] spec = new String[1];
         // /* char * */int speca;
@@ -145,9 +146,9 @@ public class Filter {
             // speca = spec;
             // printf("%s\n",spec);
             // p = "LpBuZ2/5000";
-            // printf("%f, %s\n",imrate,spec);
+            // printf("%f, %s\n",imRate,spec);
             try {
-                fid = FidFilter.Factory.newInstance().fid_parse(imrate, spec);
+                fid = FidFilter.Factory.newInstance().fid_parse(imRate, spec);
 for (FidFilter f : fid) {
  logger.log(Level.DEBUG, f);
 }
@@ -173,7 +174,7 @@ e.printStackTrace(System.err);
         int x;
         int max;
         int count = 0;
-        float[] flout = boobuf;
+        float[] flout = booBuf;
 
         max = inlen & ~0x1F;
         max -= NCOEFFS;
@@ -181,7 +182,7 @@ e.printStackTrace(System.err);
             max = 0;
 
         int floutP = 0;
-        for (x = 0; x < max; x += mrratio) {
+        for (x = 0; x < max; x += mrRatio) {
             float acc = 0;
             int c;
             int wave; //
@@ -198,30 +199,30 @@ e.printStackTrace(System.err);
 
         leftover[0] = inlen - max;
 
-        count = max / mrratio;
+        count = max / mrRatio;
 if (fid != null) {
-        fid[0].filter_step(max / mrratio);
+        fid[0].filter_step((double) max / mrRatio);
 }
         {
 //            SRC_DATA doot;
 //            int error;
 //
-//            doot.data_in = boobuf;
+//            doot.data_in = booBuf;
 //            doot.data_out = out;
 //            doot.input_frames = count;
 //            doot.output_frames = maxoutlen;
-//            doot.src_ratio = lrhfactor;
+//            doot.src_ratio = lrhFactor;
 //            doot.end_of_input = 0;
 //
 //            if ((error = src_process(lrh, doot))) {
-//logger.log(Level.DEBUG, "Eeeek: %s, %d, %d".formatted(src_strerror(error), boobuf, out));
+//logger.log(Level.DEBUG, "Eeeek: %s, %d, %d".formatted(src_strerror(error), booBuf, out));
 //                 exit(1);
 //            }
 //
-//             if(doot.input_frames_used - count) exit(1);
-//             printf("Oops: %d\n\n", doot.input_frames_used - count);
+//            if(doot.input_frames_used - count) exit(1);
+//            printf("Oops: %d\n\n", doot.input_frames_used - count);
 //
-//             printf("%d\n",doot.output_frames_gen);
+//            printf("%d\n",doot.output_frames_gen);
 //            execSexyFilter(out, out, doot.output_frames_gen);
 //            return doot.output_frames_gen;
         }

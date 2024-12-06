@@ -30,33 +30,33 @@ import vavi.sound.nsf.festalon.Writer;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060503 nsano initial version <br>
  */
-public class vrc7 extends ExpSound {
+public class Vrc7 extends ExpSound {
 
     /** */
-    private Opll ym;
+    private final Opll ym;
     /** */
     private int bc;
     /** */
-    private byte indox;
+    private int index;
     /** */
-    private int divc;
+    private int divC;
     /** */
     private int out;
     /** */
-    private NesApu gapu;
+    private final NesApu gApu;
 
     /** */
     public void fillHi() {
 
-        for (int V = bc; V < gapu.cpu.timestamp; V++) {
-            if (divc == 0) {
+        for (int V = bc; V < gApu.cpu.timestamp; V++) {
+            if (divC == 0) {
                 out = (ym.calc() + (2048 * 6)) << 1;
             }
-            divc = (divc + 1) % 36;
-            gapu.waveHi[V] += out;
+            divC = (divC + 1) % 36;
+            gApu.waveHi[V] += out;
         }
 
-        bc = gapu.cpu.timestamp;
+        bc = gApu.cpu.timestamp;
     }
 
     /** */
@@ -65,7 +65,7 @@ public class vrc7 extends ExpSound {
     }
 
     /** */
-    private Writer mapper85Writer = new Writer() {
+    private final Writer mapper85Writer = new Writer() {
         public void exec(int address, int value) {
 
             address |= (address & 8) << 1;
@@ -73,9 +73,9 @@ public class vrc7 extends ExpSound {
 
             if (address == 0x9030) {
                 fillHi();
-                ym.writeReg(indox, value);
+                ym.writeReg(index, value);
             } else if (address == 0x9010) {
-                indox = (byte) value;
+                index = value;
             }
         }
     };
@@ -90,16 +90,16 @@ public class vrc7 extends ExpSound {
     }
 
     /** */
-    public vrc7(NesApu apu) {
+    public Vrc7(NesApu apu) {
 
-        this.divc = 0;
-        apu.cpu.setWriter(0x9000, 0x9FFF, mapper85Writer, this);
+        this.divC = 0;
+        apu.cpu.setWriter(0x9000, 0x9fff, mapper85Writer, this);
 
 //      apu.x.setWriter(0x9010, 0x901F, mapper85Writer, this);
 //      apu.x.setWriter(0x9030, 0x903F, mapper85Writer, this);
 
         this.ym = new Opll(3579545);
-        this.gapu = apu;
+        this.gApu = apu;
         this.ym.reset();
 
         this.channels = 6;

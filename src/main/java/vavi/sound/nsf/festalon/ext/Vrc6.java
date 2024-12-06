@@ -30,66 +30,66 @@ import vavi.sound.nsf.festalon.Writer;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
-public class vrc6 extends ExpSound {
-    private int[] cvbc = new int[3];
-    private int[] vcount = new int[3];
-    private int[] dcount = new int[2];
+public class Vrc6 extends ExpSound {
+    private final int[] cvbc = new int[3];
+    private final int[] vCount = new int[3];
+    private final int[] dCount = new int[2];
     private byte b3;
-    private int phaseacc;
-    private byte[] vpsg = new byte[8];
-    private byte[] vpsg2 = new byte[4];
+    private int phaseAcc;
+    private final byte[] vPsg = new byte[8];
+    private final byte[] vPsg2 = new byte[4];
     private int disabled;
-    private NesApu gapu;
+    private NesApu gApu;
 
-    private Writer sWriter = (address, value) -> {
+    private final Writer sWriter = (address, value) -> {
 
         address &= 0xF003;
         if (address >= 0x9000 && address <= 0x9002) {
             doSQV1HQ();
-            vpsg[address & 3] = (byte) value;
+            vPsg[address & 3] = (byte) value;
         } else if (address >= 0xa000 && address <= 0xa002) {
             doSQV2HQ();
-            vpsg[4 | (address & 3)] = (byte) value;
+            vPsg[4 | (address & 3)] = (byte) value;
         } else if (address >= 0xb000 && address <= 0xb002) {
             doSawVHQ();
-            vpsg2[address & 3] = (byte) value;
+            vPsg2[address & 3] = (byte) value;
         }
     };
 
     private void doSQVHQ(int i) {
 
-        int amp = ((vpsg[i << 2] & 15) << 8) * 6 / 8;
+        int amp = ((vPsg[i << 2] & 15) << 8) * 6 / 8;
 
-        if ((vpsg[(i << 2) | 0x2] & 0x80) != 0 && (disabled & (0x1 << i)) == 0) {
-            if ((vpsg[i << 2] & 0x8) != 0) {
-                for (int v = cvbc[i]; v < gapu.cpu.timestamp; v++) {
-                    gapu.waveHi[v] += amp;
+        if ((vPsg[(i << 2) | 0x2] & 0x80) != 0 && (disabled & (0x1 << i)) == 0) {
+            if ((vPsg[i << 2] & 0x8) != 0) {
+                for (int v = cvbc[i]; v < gApu.cpu.timestamp; v++) {
+                    gApu.waveHi[v] += amp;
                 }
             } else {
-                int thresh = (vpsg[i << 2] >> 4) & 7;
+                int thresh = (vPsg[i << 2] >> 4) & 7;
                 int curout;
 
                 curout = 0;
-                if (dcount[i] > thresh) { /* Greater than, not >=. Important. */
+                if (dCount[i] > thresh) { /* Greater than, not >=. Important. */
                     curout = amp;
                 }
 
-                for (int v = cvbc[i]; v < gapu.cpu.timestamp; v++) {
-                    gapu.waveHi[v] += curout;
-                    vcount[i]--;
-                    if (vcount[i] <= 0) { /* Should only be <0 in a few circumstances. */
+                for (int v = cvbc[i]; v < gApu.cpu.timestamp; v++) {
+                    gApu.waveHi[v] += curout;
+                    vCount[i]--;
+                    if (vCount[i] <= 0) { /* Should only be <0 in a few circumstances. */
 
-                        vcount[i] = (vpsg[(i << 2) | 0x1] | ((vpsg[(i << 2) | 0x2] & 15) << 8)) + 1;
-                        dcount[i] = (dcount[i] + 1) & 15;
+                        vCount[i] = (vPsg[(i << 2) | 0x1] | ((vPsg[(i << 2) | 0x2] & 15) << 8)) + 1;
+                        dCount[i] = (dCount[i] + 1) & 15;
                         curout = 0;
-                        if (dcount[i] > thresh) { /* Greater than, not >=. Important. */
+                        if (dCount[i] > thresh) { /* Greater than, not >=. Important. */
                             curout = amp;
                         }
                     }
                 }
             }
         }
-        cvbc[i] = gapu.cpu.timestamp;
+        cvbc[i] = gApu.cpu.timestamp;
     }
 
     private void doSQV1HQ() {
@@ -101,24 +101,24 @@ public class vrc6 extends ExpSound {
     }
 
     private void doSawVHQ() {
-        int curout = (((phaseacc >> 3) & 0x1f) << 8) * 6 / 8;
-        if ((vpsg2[2] & 0x80) != 0 && (disabled & 0x4) == 0) {
-            for (int V = cvbc[2]; V < gapu.cpu.timestamp; V++) {
-                gapu.waveHi[V] += curout;
-                vcount[2]--;
-                if (vcount[2] <= 0) {
-                    vcount[2] = (vpsg2[1] + ((vpsg2[2] & 15) << 8) + 1) << 1;
-                    phaseacc += vpsg2[0] & 0x3f;
+        int curout = (((phaseAcc >> 3) & 0x1f) << 8) * 6 / 8;
+        if ((vPsg2[2] & 0x80) != 0 && (disabled & 0x4) == 0) {
+            for (int V = cvbc[2]; V < gApu.cpu.timestamp; V++) {
+                gApu.waveHi[V] += curout;
+                vCount[2]--;
+                if (vCount[2] <= 0) {
+                    vCount[2] = ((vPsg2[1] & 0xff) + ((vPsg2[2] & 15) << 8) + 1) << 1;
+                    phaseAcc += vPsg2[0] & 0x3f;
                     b3++;
                     if (b3 == 7) {
                         b3 = 0;
-                        phaseacc = 0;
+                        phaseAcc = 0;
                     }
-                    curout = (((phaseacc >> 3) & 0x1f) << 8) * 6 / 8;
+                    curout = (((phaseAcc >> 3) & 0x1f) << 8) * 6 / 8;
                 }
             }
         }
-        cvbc[2] = gapu.cpu.timestamp;
+        cvbc[2] = gApu.cpu.timestamp;
     }
 
     public void fillHi() {
@@ -140,7 +140,7 @@ public class vrc6 extends ExpSound {
         disabled = mask;
     }
 
-    public vrc6(NesApu apu) {
+    public Vrc6(NesApu apu) {
         this.channels = 3;
 
         apu.cpu.setWriter(0x8000, 0xbfff, sWriter, this);

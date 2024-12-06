@@ -82,17 +82,17 @@ class JitFidFilter extends FidFilter {
     }
 
     /** Magic: 0x64966325 */
-    private int magic;
+    private final int magic;
     /** Length of working buffer required in doubles */
-    private int n_buf;
+    private final int n_buf;
     /** Coefficient list */
-    private double[] coef;
+    private final double[] coef;
 
     /** Routine used */
     private Routine rout;
 
     /** Number of 4-byte chunks to copy from &buf[1] to &buf[0] */
-    private int mov_cnt;
+    private final int mov_cnt;
     /** Buffer itself */
     private double[] buf;
 

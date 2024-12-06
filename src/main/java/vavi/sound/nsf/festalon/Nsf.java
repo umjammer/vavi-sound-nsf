@@ -29,12 +29,12 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.util.Arrays;
 
-import vavi.sound.nsf.festalon.ext.ay;
-import vavi.sound.nsf.festalon.ext.fds;
-import vavi.sound.nsf.festalon.ext.mmc5;
-import vavi.sound.nsf.festalon.ext.n106;
-import vavi.sound.nsf.festalon.ext.vrc6;
-import vavi.sound.nsf.festalon.ext.vrc7;
+import vavi.sound.nsf.festalon.ext.Ay;
+import vavi.sound.nsf.festalon.ext.Fds;
+import vavi.sound.nsf.festalon.ext.Mmc5;
+import vavi.sound.nsf.festalon.ext.N106;
+import vavi.sound.nsf.festalon.ext.Vrc6;
+import vavi.sound.nsf.festalon.ext.Vrc7;
 
 import static java.lang.System.getLogger;
 
@@ -203,15 +203,18 @@ class Nsf extends Plugin {
 
     /** */
     private Writer amlWriter = new Writer() {
-        public void exec(int address, int value) {
+        @Override public void exec(int address, int value) {
             cpu._private[cpu.a & 0x7ff] = (byte) value;
         }
     };
 
     /** */
     private Reader amlReader = new Reader() {
-        public int exec(int address, int dataBus) {
+        @Override public int exec(int address, int dataBus) {
             return cpu._private[cpu.a & 0x7ff];
+        }
+        @Override public String toString() {
+            return "amlReader";
         }
     };
 
@@ -321,11 +324,11 @@ logger.log(Level.DEBUG, nsfHeader);
 
         nsfHeader.gameName[31] = nsfHeader.artist[31] = nsfHeader.copyright[31] = 0;
 
-        gameName = new String(nsfHeader.gameName);
+        gameName = new String(nsfHeader.gameName).replace("\0", "");
 logger.log(Level.DEBUG, "gameName: " + gameName);
-        artist = new String(nsfHeader.artist);
+        artist = new String(nsfHeader.artist).replace("\0", "");
 logger.log(Level.DEBUG, "artist: " + artist);
-        copyright = new String(nsfHeader.copyright);
+        copyright = new String(nsfHeader.copyright).replace("\0", "");
 logger.log(Level.DEBUG, "copyright: " + copyright);
 
         loadAddr = nsfHeader.loadAddressLow;
@@ -348,7 +351,7 @@ logger.log(Level.DEBUG, "playAddr: %04x".formatted(playAddr));
 logger.log(Level.DEBUG, "nsfSize: %04x".formatted(nsfSize));
 
         nsfMaxBank = (nsfSize + (loadAddr & 0xfff) + 4095) / 4096;
-        nsfMaxBank = uppow2(nsfMaxBank);
+        nsfMaxBank = upPow2(nsfMaxBank);
 logger.log(Level.DEBUG, "nsfMaxBank: %04x".formatted(nsfMaxBank));
 
         if (info_only == 0) {
@@ -490,7 +493,7 @@ logger.log(Level.DEBUG, "here 2 *");
 
         if (!pal) {
             ExpSound[] expSounds = {
-                new vrc6(apu), new vrc7(apu), new fds(apu), new mmc5(apu), new n106(apu), new ay(apu)
+                new Vrc6(apu), new Vrc7(apu), new Fds(apu), new Mmc5(apu), new N106(apu), new Ay(apu)
             };
 
             for (int i = 0; i < expSounds.length; i++) {
@@ -694,7 +697,7 @@ logger.log(Level.DEBUG, "clri");
                 } else if (t.equals("NEND")) {
                     if (chunk_size == 0 && nbuf != null) {
                         nsfMaxBank = ((nsfSize + (loadAddr & 0xfff) + 4095) / 4096);
-                        nsfMaxBank = uppow2(nsfMaxBank);
+                        nsfMaxBank = upPow2(nsfMaxBank);
 
                         if (info_only == 0) {
                             nsfData = new byte[nsfMaxBank * 4096];
@@ -730,7 +733,7 @@ logger.log(Level.DEBUG, "clri");
 
                     while (count-- > 0) {
                         songLengths[ws] = dis.readInt();
-//logger.log(Level.DEBUG, "%d".firmatted(fe.SongLengths[ws] / 1000));
+//logger.log(Level.DEBUG, "%d".formatted(fe.SongLengths[ws] / 1000));
                         ws++;
                     }
                 } else if (t.equals("fade")) {
@@ -771,7 +774,7 @@ logger.log(Level.DEBUG, "clri");
                     // by
                     // createNSFE()
                     // if necessary.
-//logger.log(Level.DEBUG, "Boop: %.4s".firmatted(tb));
+//logger.log(Level.DEBUG, "Boop: %.4s".formatted(tb));
                     // NSFExtra = NSFExtra(NSFExtraSize + 8 + chunk_size);
                     System.arraycopy(buf, bufP - 8, nsfExtra, nsfExtraSize, 8 + chunk_size);
                     nsfExtraSize += 8 + chunk_size;
@@ -788,7 +791,7 @@ logger.log(Level.TRACE, e.getMessage(), e);
     }
 
     /** */
-    private static int uppow2(int n) {
+    private static int upPow2(int n) {
         for (int x = 31; x >= 0; x--) {
             if ((n & (1 << x)) != 0) {
                 if ((1 << x) != n) {
@@ -801,14 +804,14 @@ logger.log(Level.TRACE, e.getMessage(), e);
     }
 
     /**
-     * @param totalsize out
+     * @param totalSize out
      */
-    private byte[] createNSFE(int[] totalsize) {
+    private byte[] createNSFE(int[] totalSize) {
         try {
-            int cursize;
+            int curSize;
             ByteArrayOutputStream buffer;
 
-            cursize = 0;
+            curSize = 0;
             buffer = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(buffer);
 
@@ -897,7 +900,7 @@ logger.log(Level.TRACE, e.getMessage(), e);
             dos.writeBytes("NEND");
             dos.writeInt(0); // TODO
 
-            totalsize[0] = cursize;
+            totalSize[0] = curSize;
             return buffer.toByteArray();
 
         } catch (IOException e) {
@@ -916,8 +919,8 @@ logger.log(Level.TRACE, e.getMessage(), e);
     /**
      * @before should call {@link #setSound(int, int)}
      */
-    public int setLowpass(boolean on, int corner, int order) {
-        return apu.filter.setLowpass(on, corner, order);
+    public int setLowPass(boolean on, int corner, int order) {
+        return apu.filter.setLowPass(on, corner, order);
     }
 
     /** */

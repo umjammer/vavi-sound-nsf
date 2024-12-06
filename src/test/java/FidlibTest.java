@@ -6,6 +6,8 @@
 
 import vavi.sound.fidlib.FidFilter;
 
+import org.junit.jupiter.api.Test;
+
 
 /**
  * FidlibTest.
@@ -15,10 +17,8 @@ import vavi.sound.fidlib.FidFilter;
  */
 public class FidlibTest {
 
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
+    @Test
+    void test1() throws Exception {
         System.err.println(FidFilter.fid_version());
         FidFilter filter = FidFilter.Factory.newInstance();
         filter.fid_list_filters(System.err);

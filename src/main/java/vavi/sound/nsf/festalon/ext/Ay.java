@@ -30,7 +30,7 @@ import vavi.sound.nsf.festalon.Writer;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
-public class ay extends ExpSound {
+public class Ay extends ExpSound {
     byte index;
     byte[] PSG = new byte[0x10];
     int[] vcount = new int[3];
@@ -129,7 +129,7 @@ public class ay extends ExpSound {
         disabled = mask;
     }
 
-    public ay(NesApu apu) {
+    public Ay(NesApu apu) {
         gapu = apu;
 
         this.channels = 3;

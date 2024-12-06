@@ -116,7 +116,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
 
         private volatile boolean finished = false;
 
-        /** */
+        @Override
         public void initialize(OutputStream out) throws IOException {
             if (this.out != null) {
                 throw new IOException("Already initialized");
@@ -179,7 +179,7 @@ logger.log(Level.DEBUG, "sink finish");
 
         static final int BUFFER_SIZE = 16;
 
-        /** */
+        @Override
         public void execute() throws IOException {
             try {
                 int c = 0;
@@ -195,7 +195,7 @@ logger.log(Level.DEBUG, "BlockingDeque#take() interrupted");
             }
         }
 
-        /** */
+        @Override
         public void finish() throws IOException {
 logger.log(Level.DEBUG, "engine finish");
             executor.shutdown();

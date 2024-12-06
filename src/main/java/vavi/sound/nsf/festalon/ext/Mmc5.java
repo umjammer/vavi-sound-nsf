@@ -31,7 +31,7 @@ import vavi.sound.nsf.festalon.Writer;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
-public class mmc5 extends ExpSound {
+public class Mmc5 extends ExpSound {
 
     private int[] wl = new int[2];
     private byte[] env = new byte[2];
@@ -60,12 +60,12 @@ public class mmc5 extends ExpSound {
 
     private Writer exRamWriter = (address, value) -> exRam[address & 0x3ff] = (byte) value;
 
-    private Reader exRamReader = (address, dataBus) -> exRam[address & 0x3ff];
+    private Reader exRamReader = (address, dataBus) -> exRam[address & 0x3ff] & 0xff;
 
     private Reader reader = (address, dataBus) -> {
         return switch (address) {
-            case 0x5205 -> (mul[0] * mul[1]);
-            case 0x5206 -> ((mul[0] * mul[1]) >> 8);
+            case 0x5205 -> (mul[0] & 0xff) * (mul[1] & 0xff);
+            case 0x5206 -> ((mul[0] & 0xff) * (mul[1] & 0xff)) >> 8;
             default -> dataBus;
         };
     };
@@ -184,7 +184,7 @@ public class mmc5 extends ExpSound {
         disabled = mask;
     }
 
-    public mmc5(NesApu apu) {
+    public Mmc5(NesApu apu) {
 
         gapu = apu;
 

@@ -191,6 +191,7 @@ import java.util.Scanner;
  * response is at gain==1.0. However, this depends on the filter type.
  */
 public abstract class FidFilter {
+
     /** */
     private static final String FIDLIB_VERSION = "0.9.9";
 
@@ -2503,9 +2504,9 @@ public abstract class FidFilter {
         for (Filter value : filter) {
             byte[] buf = new byte[4096];
             expand_spec(buf, buf.length, value.format.getBytes());
-            out.write(String.format("%s\n    ", new String(buf)).getBytes());
+            out.write(String.format("%s\n    ", new String(buf).replace("\0", "")).getBytes());
             expand_spec(buf, buf.length, value.text.getBytes());
-            out.write(String.format("%s\n", new String(buf)).getBytes());
+            out.write(String.format("%s\n", new String(buf).replace("\0", "")).getBytes());
         }
     }
 

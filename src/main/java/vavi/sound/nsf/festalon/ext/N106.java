@@ -31,22 +31,22 @@ import vavi.sound.nsf.festalon.Writer;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
-public class n106 extends ExpSound {
-    private byte[] iram = new byte[128];
+public class N106 extends ExpSound {
+    private final byte[] iRam = new byte[128];
     private byte dopol;
-    private int[] freqCache = new int[8];
-    private int[] envCache = new int[8];
-    private int[] lengthCache = new int[8];
-    private int[] playIndex = new int[8];
-    private int[] vcount = new int[8];
+    private final int[] freqCache = new int[8];
+    private final int[] envCache = new int[8];
+    private final int[] lengthCache = new int[8];
+    private final int[] playIndex = new int[8];
+    private final int[] vCount = new int[8];
     private int cvbc;
     private int disabled;
-    private NesApu gapu;
+    private final NesApu gApu;
 
     private Reader namco4800Reader = new Reader() {
         public int exec(int address, int dataBus) {
 
-            byte ret = iram[dopol & 0x7f];
+            byte ret = iRam[dopol & 0x7f];
 
             /* Maybe I should call DoNamcoSoundHQ() here? */
             if ((dopol & 0x80) != 0) {
@@ -90,7 +90,7 @@ public class n106 extends ExpSound {
                     fillHi();
                     fixCache(dopol, value);
                 }
-                iram[dopol & 0x7f] = (byte) value;
+                iRam[dopol & 0x7f] = (byte) value;
 
                 if ((dopol & 0x80) != 0)
                     dopol = (byte) ((dopol & 0x80) | ((dopol + 1) & 0x7f));
@@ -130,19 +130,19 @@ public class n106 extends ExpSound {
     public void fillHi() {
         int P, V;
         int cyclesuck;
-        byte[] IRAM = this.iram;
-        int timestamp = gapu.cpu.timestamp;
+        byte[] IRAM = this.iRam;
+        int timestamp = gApu.cpu.timestamp;
         cyclesuck = (((IRAM[0x7F] >> 4) & 7) + 1) * 15;
 
         for (P = 7; P >= (7 - ((IRAM[0x7F] >> 4) & 7)); P--) {
-            int WaveHi = cvbc; // gapu.WaveHi
+            int WaveHi = cvbc; // gApu.WaveHi
             if ((IRAM[0x44 + (P << 3)] & 0xE0) != 0 && (IRAM[0x47 + (P << 3)] & 0xF) != 0 && (disabled & (0x1 << P)) == 0) {
                 int freq;
                 int vco;
                 int duff2, lengo, envelope;
                 int PlayIndex;
 
-                vco = vcount[P];
+                vco = vCount[P];
                 freq = freqCache[P];
                 envelope = envCache[P];
                 lengo = lengthCache[P];
@@ -154,7 +154,7 @@ public class n106 extends ExpSound {
                 for (V = cvbc; V < timestamp; V++) {
                 // for(;V;V--)
 
-                    gapu.waveHi[WaveHi] += duff2;
+                    gApu.waveHi[WaveHi] += duff2;
                     if (vco == 0) {
                         PlayIndex += freq;
                         while ((PlayIndex >> TOINDEX) >= lengo)
@@ -164,7 +164,7 @@ public class n106 extends ExpSound {
                     }
                     vco--;
 
-                    gapu.waveHi[WaveHi] += duff2;
+                    gApu.waveHi[WaveHi] += duff2;
                     if (vco == 0) {
                         PlayIndex += freq;
                         while ((PlayIndex >> TOINDEX) >= lengo)
@@ -175,7 +175,7 @@ public class n106 extends ExpSound {
                     WaveHi++;
                     vco--;
                 }
-                vcount[P] = vco;
+                vCount[P] = vco;
                 this.playIndex[P] = PlayIndex;
             }
         }
@@ -189,9 +189,9 @@ public class n106 extends ExpSound {
         disabled = mask;
     }
 
-    public n106(NesApu apu) {
+    public N106(NesApu apu) {
 
-        this.gapu = apu;
+        this.gApu = apu;
 
         apu.cpu.setWriter(0xf800, 0xffff, mapper19Writer, this);
         apu.cpu.setWriter(0x4800, 0x4fff, mapper19Writer, this);

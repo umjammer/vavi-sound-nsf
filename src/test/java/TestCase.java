@@ -48,7 +48,7 @@ public class TestCase {
     }
 
     @Property(name = "nsf")
-    String inFile = "src/test/resources/smb1.nsf";
+    String inFile = "src/test/resources/test.nsf";
 
     @Property(name = "vavi.test.volume")
     double volume = 0.2;
@@ -83,6 +83,7 @@ for (AudioFileFormat.Type type : AudioSystem.getAudioFileTypes()) {
                 false,
                 props);
 
+Debug.println(inFile);
         AudioInputStream ais = new Nsf2PcmAudioInputStream(Files.newInputStream(Paths.get(inFile)), targetAudioFormat, -1);
 Debug.println(targetAudioFormat);
 
@@ -128,6 +129,7 @@ Debug.println("buffer size: " + line.getBufferSize());
                 false,
                 props);
 
+Debug.println(inFile);
         AudioInputStream sourceAis = AudioSystem.getAudioInputStream(new BufferedInputStream(Files.newInputStream(Path.of(inFile))));
         AudioFormat sourceAudioFormat = sourceAis.getFormat();
 Debug.println(sourceAudioFormat);

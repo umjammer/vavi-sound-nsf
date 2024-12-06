@@ -24,7 +24,7 @@ public class X6502 {
     }
 
     /** Temporary cycle counter */
-    private int tcount;
+    private int tCount;
 
     /**
      * I'll change this to uint32 later... I'll need to AND PC after increments
@@ -44,18 +44,18 @@ public class X6502 {
 
     /* Data bus "cache" for reads from certain areas */
     private int db;
-    private byte[] ram;
+    private final byte[] ram;
 
     boolean pal;
 
     /* Sent to the hook functions. */
     byte[] _private;
 
-    private Reader[] readers = new Reader[0x10000];
-    private WriteMap[] writers = new WriteMap[0x10000];
+    private final Reader[] readers = new Reader[0x1_0000];
+    private final WriteMap[] writers = new WriteMap[0x1_0000];
 
-    // writefunc BWrite = new byte[0x10000];
-    private Object[] readPrivate = new Object[0x10000];
+    // writeFunc BWrite = new byte[0x10000];
+    private Object[] readPrivate = new Object[0x1_0000];
 
     // void *BWritePrivate[0x10000];
 
@@ -77,17 +77,17 @@ public class X6502 {
 
     static final int FCEU_IQEXT = 0x001;
     static final int FCEU_IQEXT2 = 0x002;
-    /* ... */
+    // ...
     static final int FCEU_IQRESET = 0x020;
     static final int FCEU_IQDPCM = 0x100;
     static final int FCEU_IQFCOUNT = 0x200;
 
     /** */
-    private Writer nullWriter = (address, value) -> {
+    private final Writer nullWriter = (address, value) -> {
     };
 
     /** */
-    private Reader nullReader = (address, dataBus) -> dataBus;
+    private final Reader nullReader = (address, dataBus) -> dataBus;
 
     /** */
     public void setReader(int start, int end, Reader reader, Object _private) {
@@ -127,13 +127,13 @@ public class X6502 {
     /** */
     private void addCYC(int x) {
         int __x = x;
-        tcount += __x;
+        tCount += __x;
         count -= __x * 48;
     }
 
     /** */
     private int readMemory(int address) {
-//logger.log(Level.TRACE, "address: " + StringUtil.toHex4(address));
+//logger.log(Level.TRACE, "address: %04x, %s".formatted(address, readers[address]));
         return db = readers[address].exec(address, db); // AReadPrivate[A]
     }
 
@@ -183,14 +183,16 @@ public class X6502 {
 //logger.log(Level.TRACE, "s: %1$04X, %1$s".formatted(s));
         writeRAM(0x100 + s, v);
         s--;
-if (s < 0) { // TODO
-    s = 0xff;
-}
+        s &= 0xff; // TODO vavi
     }
 
     /** */
     private int pop() {
-        return readRAM(0x100 + (++s));
+        try {
+            return readRAM(0x100 + (++s));
+        } finally {
+            s &= 0xff; // TODO vavi
+        }
     }
 
     /** */
@@ -245,11 +247,13 @@ if (s < 0) { // TODO
             addCYC(1);
             tmp = pc;
             pc += disp;
+            pc &= 0xffff;
             if (((tmp ^ pc) & 0x100) != 0) {
                 addCYC(1);
             }
         } else {
             pc++;
+            pc &= 0xffff;
         }
     }
 
@@ -368,6 +372,7 @@ if (s < 0) { // TODO
     private OP dec = new OP() {
         public void exec(Integer... i) {
             i[0]--;
+            i[0] &= 0xff;
             x_zn(i[0]);
         }
     };
@@ -375,6 +380,7 @@ if (s < 0) { // TODO
     private OP inc = new OP() {
         public void exec(Integer... i) {
             i[0]++;
+            i[0] &= 0xff;
             x_zn(i[0]);
         }
     };
@@ -438,8 +444,10 @@ if (s < 0) { // TODO
     private int getAB() {
         int target = readMemory(pc);
         pc++;
+        pc &= 0xffff;
         target |= readMemory(pc) << 8;
         pc++;
+        pc &= 0xffff;
         return target;
     }
 
@@ -469,6 +477,7 @@ if (s < 0) { // TODO
     private int getZP() {
         int target = readMemory(pc);
         pc++;
+        pc &= 0xffff;
         return target;
     }
 
@@ -476,6 +485,7 @@ if (s < 0) { // TODO
     private int getZPI(int i) {
         int target = i + readMemory(pc);
         pc++;
+        pc &= 0xffff;
         return target;
     }
 
@@ -484,6 +494,7 @@ if (s < 0) { // TODO
         int tmp;
         tmp = readMemory(pc);
         pc++;
+        pc &= 0xffff;
         tmp += x;
         int target = readRAM(tmp);
         tmp++;
@@ -497,6 +508,7 @@ if (s < 0) { // TODO
         int tmp;
         tmp = readMemory(pc);
         pc++;
+        pc &= 0xffff;
         rt = readRAM(tmp);
         tmp++;
         rt |= readRAM(tmp) << 8;
@@ -516,6 +528,7 @@ if (s < 0) { // TODO
         int tmp;
         tmp = readMemory(pc);
         pc++;
+        pc &= 0xffff;
         rt = readRAM(tmp);
         tmp++;
         rt |= readRAM(tmp) << 8;
@@ -616,6 +629,7 @@ if (s < 0) { // TODO
     private void ldIM(OP op) {
         int value = readMemory(pc);
         pc++;
+        pc &= 0xffff;
         op.exec(value);
     }
 
@@ -782,13 +796,14 @@ if (s < 0) { // TODO
 
     /** */
     public void power() {
-        count = tcount = irqLow = pc = a = x = y = s = p = mooPI = db = jammed = 0;
+        count = tCount = irqLow = pc = a = x = y = s = p = mooPI = db = jammed = 0;
         timestamp = 0;
         setReader(0x0000, 0xffff, null, null);
         setWriter(0x0000, 0xffff, null, null);
         reset();
     }
 
+int CC;
     /** */
     public void run(NesApu apu, int cycles) {
         if (pal) {
@@ -827,11 +842,12 @@ if (s < 0) { // TODO
 
             mooPI = p;
             b1 = readMemory(pc);
-//logger.log(Level.DEBUG, "%04x:%02x".firmatted(_PC, b1));
+if (CC++ < 300) { logger.log(Level.DEBUG, "%04x: %02x".formatted(pc, b1)); }
+else { System.exit(0); }
             addCYC(cycTable[b1]);
 
-            temp = tcount;
-            tcount = 0;
+            temp = tCount;
+            tCount = 0;
 
             timestamp += temp;
             apu.hookSoundCPU(temp);
@@ -1970,7 +1986,7 @@ if (s < 0) { // TODO
 
     /** */
     public void hackSpeed(NesApu apu) {
-        int howmuch;
+        int howMuch;
 
         mooPI = p;
 
@@ -1989,11 +2005,11 @@ logger.log(Level.DEBUG, "abnormal skip");
                 }
             }
         } else {
-            howmuch = count / 48;
-            if (howmuch > 0) {
-                count -= howmuch * 48;
-                timestamp += howmuch;
-                apu.hookSoundCPU(howmuch);
+            howMuch = count / 48;
+            if (howMuch > 0) {
+                count -= howMuch * 48;
+                timestamp += howMuch;
+                apu.hookSoundCPU(howMuch);
             }
         }
     }
