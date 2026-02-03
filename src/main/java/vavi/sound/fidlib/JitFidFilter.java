@@ -96,7 +96,7 @@ class JitFidFilter extends FidFilter {
     /** Buffer itself */
     private double[] buf;
 
-    private int HASH(byte[] p, int len) {
+    private static int HASH(byte[] p, int len) {
         return do_hash(p, len, 0);
     }
 
@@ -311,9 +311,9 @@ class JitFidFilter extends FidFilter {
     //
 
     // Buffer address
-    private byte[] r_buf;
+    private final byte[] r_buf;
     // Curent end of buffer
-    private int r_end;
+    private final int r_end;
     // Current write-position
     private int r_cp;
     // Current loop-back label, or 0
@@ -885,7 +885,7 @@ class JitFidFilter extends FidFilter {
      *         return value. Every 1-bit and 2-bit delta achieves avalanche.
      *         About 6*len+35 instructions.
      */
-    private int do_hash(byte[] k, int length, int initval) {
+    private static int do_hash(byte[] k, int length, int initval) {
         int a, b, c, len;
 
         // Set up the internal state
@@ -938,6 +938,7 @@ class JitFidFilter extends FidFilter {
         return c;
     }
 
+    @Override
     public double filter_step(double val) {
         // rout.code;
         return 0;

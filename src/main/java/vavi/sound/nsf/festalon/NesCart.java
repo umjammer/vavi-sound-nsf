@@ -20,9 +20,9 @@ class NesCart {
     /** */
     private static class Page {
         /** */
-        byte[] page;
+        final byte[] page;
         /** */
-        int pagePointer;
+        final int pagePointer;
         /** */
         byte[] prgPointer;
         /** */
@@ -112,20 +112,25 @@ class NesCart {
     }
 
     /** */
-    Reader cartReader = (address, dataBus) -> {
-//logger.log(Level.TRACE, "cart.read: %04X, %04X, %04X".formated(address >> 11, address, pages[address >> 11].page.length));
-        return pages[address >> 11].read(address) & 0xff;
+    private int readCounter = 0;
+    final Reader cartReader = (address, dataBus) -> {
+        int val = pages[address >> 11].read(address) & 0xff;
+        if (readCounter < 100) {
+             logger.log(Level.TRACE, "ROM Read at %04X: %02x".formatted(address, val));
+             readCounter++;
+        }
+        return val;
     };
 
     /** */
-    Writer cartWriter = (address, value) -> {
+    final Writer cartWriter = (address, value) -> {
         if (pages[address >> 11].prgIsRAM && pages[address >> 11] != null) {
             pages[address >> 11].write(address, (byte) value);
         }
     };
 
     /** */
-    private Reader cartReaderOB = (address, dataBus) -> {
+    private final Reader cartReaderOB = (address, dataBus) -> {
         if (pages[address >> 11] == null) {
             return dataBus;
         }

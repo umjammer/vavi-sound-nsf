@@ -33,21 +33,21 @@ import vavi.sound.nsf.festalon.Writer;
  */
 public class Mmc5 extends ExpSound {
 
-    private int[] wl = new int[2];
-    private byte[] env = new byte[2];
+    private final int[] wl = new int[2];
+    private final byte[] env = new byte[2];
     private byte enable;
     private byte running;
     private byte raw;
     private byte rawcontrol;
-    private byte[] mul = new byte[2];
-    private byte[] exRam = new byte[1024];
-    private int[] dcount = new int[2];
-    private int[] bc = new int[3];
-    private int[] vcount = new int[2];
+    private final byte[] mul = new byte[2];
+    private final byte[] exRam = new byte[1024];
+    private final int[] dcount = new int[2];
+    private final int[] bc = new int[3];
+    private final int[] vcount = new int[2];
     private int disabled;
-    private NesApu gapu;
+    private final NesApu gapu;
 
-    private Writer mapper5Writer = (address, value) -> {
+    private final Writer mapper5Writer = (address, value) -> {
         switch (address) {
         case 0x5205:
             mul[0] = (byte) value;
@@ -58,16 +58,14 @@ public class Mmc5 extends ExpSound {
         }
     };
 
-    private Writer exRamWriter = (address, value) -> exRam[address & 0x3ff] = (byte) value;
+    private final Writer exRamWriter = (address, value) -> exRam[address & 0x3ff] = (byte) value;
 
-    private Reader exRamReader = (address, dataBus) -> exRam[address & 0x3ff] & 0xff;
+    private final Reader exRamReader = (address, dataBus) -> exRam[address & 0x3ff] & 0xff;
 
-    private Reader reader = (address, dataBus) -> {
-        return switch (address) {
-            case 0x5205 -> (mul[0] & 0xff) * (mul[1] & 0xff);
-            case 0x5206 -> ((mul[0] & 0xff) * (mul[1] & 0xff)) >> 8;
-            default -> dataBus;
-        };
+    private final Reader reader = (address, dataBus) -> switch (address) {
+        case 0x5205 -> (mul[0] & 0xff) * (mul[1] & 0xff);
+        case 0x5206 -> ((mul[0] & 0xff) * (mul[1] & 0xff)) >> 8;
+        default -> dataBus;
     };
 
     private void do5PCMHQ() {
@@ -81,7 +79,8 @@ public class Mmc5 extends ExpSound {
     }
 
     /** */
-    private Writer mapper5SWriter = new Writer() {
+    private final Writer mapper5SWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
 
             address &= 0x1F;
@@ -165,21 +164,25 @@ public class Mmc5 extends ExpSound {
         bc[p] = gapu.cpu.timestamp;
     }
 
+    @Override
     public void fillHi() {
         do5SQHQ(0);
         do5SQHQ(1);
         do5PCMHQ();
     }
 
+    @Override
     public void syncHi(int ts) {
         int x;
         for (x = 0; x < 3; x++)
             bc[x] = ts;
     }
 
+    @Override
     public void kill() {
     }
 
+    @Override
     public void disable(int mask) {
         disabled = mask;
     }

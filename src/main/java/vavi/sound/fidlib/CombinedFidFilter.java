@@ -47,7 +47,7 @@ class CombinedFidFilter extends FidFilter {
     /** */
     private final double[] buf;
 
-    /** */
+    @Override
     public double filter_step(double val) {
         int a;
 

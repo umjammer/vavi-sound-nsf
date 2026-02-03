@@ -30,17 +30,17 @@ public class Filter {
     static final int FFI_INT16 = 1;
 
     // ----
-    int inputFormat;
+    final int inputFormat;
     private int mrIndex;
     private final int mrRatio;
     private double acc1, acc2;
-    private int soundQ;
+    private final int soundQ;
     private final int rate;
     private final float[] coeffs = new float[NCOEFFS];
     int soundVolume;
     private Object lrh;
     private final double lrhFactor;
-    private final float[] booBuf = new float[8192];
+    private final float[] booBuf = new float[200000];
 
     // 1789772.7272 / 16 / 60 = 1864
     // 1662607.1250 / 16 / 50 = 2078
@@ -49,15 +49,21 @@ public class Filter {
     private FidFilter[] fid;
 
     private int cpuExt;
+    private double resamplePos = 0;
 
     private void execSexyFilter(float[] in, float[] out, int count) {
         double mul1, mul2, vmul;
 
-        mul1 = (double) 94 / rate;
-        mul2 = (double) 24 / rate;
+        mul1 = 94.0 / rate;
+        mul2 = 24.0 / rate;
         vmul = (double) soundVolume * 3 / 2 / 100;
+
         int inP = 0;
         int outP = 0;
+
+        if (count > 0 && inP < 10) { // Print first few samples of a batch
+        }
+
         while (count != 0) {
             double ino = vmul * in[inP];
             acc1 += ((ino - acc1) * mul1);
@@ -65,8 +71,17 @@ public class Filter {
             {
                 float t = (float) (acc1 - ino + acc2);
 
+                if (count % 1000 == 0) { // Debug sampling
+                     // System.err.println("t (pre-norm)=" + t + " ino=" + ino + " acc1=" + acc1);
+                }
+
                 t += 32767;
                 t /= 65535;
+
+                if (outP < 10) {
+                    logger.log(Level.TRACE, "Filter out[" + outP + "]: t=" + t + " ino=" + ino + " acc1=" + acc1 + " acc2=" + acc2);
+                }
+
                 if (t < 0.0)
                     t = 0.0f;
                 if (t > 1.0)
@@ -83,10 +98,11 @@ public class Filter {
     }
 
     // filter.h
-    short[] coeffs_i16 = new short[NCOEFFS];
+    final short[] coeffs_i16 = new short[NCOEFFS];
 
     /** */
     Filter(int rate, double cpuclock, boolean pal, int quality) {
+        this.soundQ = quality;
         double[][] tabs = {
             Constants.coefNTSC, Constants.coefPAL
         };
@@ -122,6 +138,10 @@ public class Filter {
         }
         this.rate = rate;
 
+        float sum = 0;
+        for (float c : coeffs) sum += c;
+        logger.log(Level.DEBUG, "Filter coeffs sum: " + sum);
+
         imRate = cpuclock / div;
         lrhFactor = rate / imRate;
 
@@ -149,12 +169,12 @@ public class Filter {
             // printf("%f, %s\n",imRate,spec);
             try {
                 fid = FidFilter.Factory.newInstance().fid_parse(imRate, spec);
-for (FidFilter f : fid) {
- logger.log(Level.DEBUG, f);
-}
+                for (FidFilter f : fid) {
+                    logger.log(Level.DEBUG, f);
+                }
                 return 1;
             } catch (Exception e) {
-e.printStackTrace(System.err);
+                logger.log(Level.ERROR, e.getMessage(), e);
                 fid = null;
                 return 0;
             }
@@ -200,33 +220,28 @@ e.printStackTrace(System.err);
         leftover[0] = inlen - max;
 
         count = max / mrRatio;
-if (fid != null) {
-        fid[0].filter_step((double) max / mrRatio);
-}
-        {
-//            SRC_DATA doot;
-//            int error;
-//
-//            doot.data_in = booBuf;
-//            doot.data_out = out;
-//            doot.input_frames = count;
-//            doot.output_frames = maxoutlen;
-//            doot.src_ratio = lrhFactor;
-//            doot.end_of_input = 0;
-//
-//            if ((error = src_process(lrh, doot))) {
-//logger.log(Level.DEBUG, "Eeeek: %s, %d, %d".formatted(src_strerror(error), booBuf, out));
-//                 exit(1);
-//            }
-//
-//            if(doot.input_frames_used - count) exit(1);
-//            printf("Oops: %d\n\n", doot.input_frames_used - count);
-//
-//            printf("%d\n",doot.output_frames_gen);
-//            execSexyFilter(out, out, doot.output_frames_gen);
-//            return doot.output_frames_gen;
+        // Simple linear interpolation resampler
+        float step = 1.0f / (float) lrhFactor;
+        double pos = resamplePos;
+        int outIndex = 0;
+
+        while (outIndex < maxoutlen && pos < count) {
+            int idx = (int) pos;
+            float frac = (float) (pos - idx);
+            float s1 = booBuf[idx];
+            float s2 = (idx + 1 < count) ? booBuf[idx + 1] : s1; // Boundary check
+
+            out[outIndex] = s1 + frac * (s2 - s1);
+
+            outIndex++;
+            pos += step;
         }
 
-        return count;
+        resamplePos = pos - count;
+    if (resamplePos < 0) resamplePos = 0;
+
+
+        execSexyFilter(out, out, outIndex);
+        return outIndex;
     }
 }

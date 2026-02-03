@@ -706,13 +706,13 @@ public abstract class FidFilter {
     /** Number of poles */
     private int n_pol;
     /** Pole values (see above) */
-    private double[] pol = new double[MAXPZ];
+    private final double[] pol = new double[MAXPZ];
     /** Pole value types: 1 real, 2 first of complex pair, 0 second */
-    private byte[] poltyp = new byte[MAXPZ];
+    private final byte[] poltyp = new byte[MAXPZ];
     /** Same for zeros ... */
     private int n_zer;
-    private double[] zer = new double[MAXPZ];
-    private byte[] zertyp = new byte[MAXPZ];
+    private final double[] zer = new double[MAXPZ];
+    private final byte[] zertyp = new byte[MAXPZ];
 
     /**
      * Pre-warp a frequency
@@ -1506,28 +1506,32 @@ public abstract class FidFilter {
     // Filter design routines and supporting code
     //
 
-    private Filter des_bpre = new Filter("BpRe/#V/#F", "Bandpass resonator, Q=#V (0 means Inf), frequency #F") {
+    private final Filter des_bpre = new Filter("BpRe/#V/#F", "Bandpass resonator, Q=#V (0 means Inf), frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bandpass_res(f0, arg[0]);
             return z2fidfilter(1.0, ~0); // FIR constant
         }
     };
 
-    private Filter des_bsre = new Filter("BsRe/#V/#F", "Bandstop resonator, Q=#V (0 means Inf), frequency #F") {
+    private final Filter des_bsre = new Filter("BsRe/#V/#F", "Bandstop resonator, Q=#V (0 means Inf), frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bandstop_res(f0, arg[0]);
             return z2fidfilter(1.0, 0); // FIR not constant, depends on freq
         }
     };
 
-    private Filter des_apre = new Filter("ApRe/#V/#F", "Allpass resonator, Q=#V (0 means Inf), frequency #F") {
+    private final Filter des_apre = new Filter("ApRe/#V/#F", "Allpass resonator, Q=#V (0 means Inf), frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             allpass_res(f0, arg[0]);
             return z2fidfilter(1.0, 0); // FIR not constant, depends on freq
         }
     };
 
-    private Filter des_pi = new Filter("Pi/#F", "Proportional-integral filter, frequency #F") {
+    private final Filter des_pi = new Filter("Pi/#F", "Proportional-integral filter, frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             prop_integral(prewarp(f0));
             s2z_bilinear();
@@ -1535,7 +1539,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_piz = new Filter("PiZ/#F", "Proportional-integral filter, matched z-transform, frequency #F") {
+    private final Filter des_piz = new Filter("PiZ/#F", "Proportional-integral filter, matched z-transform, frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             prop_integral(prewarp(f0));
             s2z_matchedZ();
@@ -1543,63 +1548,72 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_lpbe = new Filter("LpBe#O/#F", "Lowpass Bessel filter, order #O, -3.01dB frequency #F") {
+    private final Filter des_lpbe = new Filter("LpBe#O/#F", "Lowpass Bessel filter, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_lowpass(BL, f0);
         }
     };
 
-    private Filter des_hpbe = new Filter("HpBe#O/#F", "Highpass Bessel filter, order #O, -3.01dB frequency #F") {
+    private final Filter des_hpbe = new Filter("HpBe#O/#F", "Highpass Bessel filter, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_highpass(BL, f0);
         }
     };
 
-    private Filter des_bpbe = new Filter("BpBe#O/#R", "Bandpass Bessel filter, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bpbe = new Filter("BpBe#O/#R", "Bandpass Bessel filter, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_bandpass(BL, f0, f1);
         }
     };
 
-    private Filter des_bsbe = new Filter("BsBe#O/#R", "Bandstop Bessel filter, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bsbe = new Filter("BsBe#O/#R", "Bandstop Bessel filter, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_bandstop(BL, f0, f1);
         }
     };
 
-    private Filter des_lpbez = new Filter("LpBeZ#O/#F", "Lowpass Bessel filter, matched z-transform, order #O, -3.01dB frequency #F") {
+    private final Filter des_lpbez = new Filter("LpBeZ#O/#F", "Lowpass Bessel filter, matched z-transform, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_lowpass(MZ, f0);
         }
     };
 
-    private Filter des_hpbez = new Filter("HpBeZ#O/#F", "Highpass Bessel filter, matched z-transform, order #O, -3.01dB frequency #F") {
+    private final Filter des_hpbez = new Filter("HpBeZ#O/#F", "Highpass Bessel filter, matched z-transform, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_highpass(MZ, f0);
         }
     };
 
-    private Filter des_bpbez = new Filter("BpBeZ#O/#R", "Bandpass Bessel filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bpbez = new Filter("BpBeZ#O/#R", "Bandpass Bessel filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_bandpass(MZ, f0, f1);
         }
     };
 
-    private Filter des_bsbez = new Filter("BsBeZ#O/#R", "Bandstop Bessel filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bsbez = new Filter("BsBeZ#O/#R", "Bandstop Bessel filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             bessel(order);
             return do_bandstop(MZ, f0, f1);
         }
     };
 
-    private Filter des_lpbube = new Filter("LpBuBe#O/#V/#F", "Lowpass Butterworth-Bessel #V% cross, order #O, -3.01dB frequency #F") {
+    private final Filter des_lpbube = new Filter("LpBuBe#O/#V/#F", "Lowpass Butterworth-Bessel #V% cross, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout // Butterworth-Bessel cross
         (double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double[] tmp = new double[MAXPZ];
@@ -1614,119 +1628,136 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_lpbu = new Filter("LpBu#O/#F", "Lowpass Butterworth filter, order #O, -3.01dB frequency #F") {
+    private final Filter des_lpbu = new Filter("LpBu#O/#F", "Lowpass Butterworth filter, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_lowpass(BL, f0);
         }
     };
 
- private Filter des_hpbu = new Filter("HpBu#O/#F", "Highpass Butterworth filter, order #O, -3.01dB frequency #F") {
+ private final Filter des_hpbu = new Filter("HpBu#O/#F", "Highpass Butterworth filter, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_highpass(BL, f0);
         }
     };
 
-    private Filter des_bpbu = new Filter("BpBu#O/#R", "Bandpass Butterworth filter, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bpbu = new Filter("BpBu#O/#R", "Bandpass Butterworth filter, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_bandpass(BL, f0, f1);
         }
     };
 
-    private Filter des_bsbu = new Filter("BsBu#O/#R", "Bandstop Butterworth filter, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bsbu = new Filter("BsBu#O/#R", "Bandstop Butterworth filter, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_bandstop(BL, f0, f1);
         }
     };
 
-    private Filter des_lpbuz = new Filter("LpBuZ#O/#F", "Lowpass Butterworth filter, matched z-transform, order #O, -3.01dB frequency #F") {
+    private final Filter des_lpbuz = new Filter("LpBuZ#O/#F", "Lowpass Butterworth filter, matched z-transform, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_lowpass(MZ, f0);
         }
     };
 
-    private Filter des_hpbuz = new Filter("HpBuZ#O/#F", "Highpass Butterworth filter, matched z-transform, order #O, -3.01dB frequency #F") {
+    private final Filter des_hpbuz = new Filter("HpBuZ#O/#F", "Highpass Butterworth filter, matched z-transform, order #O, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_highpass(MZ, f0);
         }
     };
 
-    private Filter des_bpbuz = new Filter("BpBuZ#O/#R", "Bandpass Butterworth filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bpbuz = new Filter("BpBuZ#O/#R", "Bandpass Butterworth filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_bandpass(MZ, f0, f1);
         }
     };
 
-    private Filter des_bsbuz = new Filter("BsBuZ#O/#R", "Bandstop Butterworth filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+    private final Filter des_bsbuz = new Filter("BsBuZ#O/#R", "Bandstop Butterworth filter, matched z-transform, order #O, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             butterworth(order);
             return do_bandstop(MZ, f0, f1);
         }
     };
 
-    private Filter des_lpch = new Filter("LpCh#O/#V/#F", "Lowpass Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequency #F") {
+    private final Filter des_lpch = new Filter("LpCh#O/#V/#F", "Lowpass Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_lowpass(BL, f0);
         }
     };
 
-    private Filter des_hpch = new Filter("HpCh#O/#V/#F", "Highpass Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequency #F") {
+    private final Filter des_hpch = new Filter("HpCh#O/#V/#F", "Highpass Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_highpass(BL, f0);
         }
     };
 
-    private Filter des_bpch = new Filter("BpCh#O/#V/#R", "Bandpass Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequencies #R") {
+    private final Filter des_bpch = new Filter("BpCh#O/#V/#R", "Bandpass Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_bandpass(BL, f0, f1);
         }
     };
 
-    private Filter des_bsch = new Filter("BsCh#O/#V/#R", "Bandstop Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequencies #R") {
+    private final Filter des_bsch = new Filter("BsCh#O/#V/#R", "Bandstop Chebyshev filter, order #O, passband ripple #VdB, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_bandstop(BL, f0, f1);
         }
     };
 
-    private Filter des_lpchz = new Filter("LpChZ#O/#V/#F", "Lowpass Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequency #F") {
+    private final Filter des_lpchz = new Filter("LpChZ#O/#V/#F", "Lowpass Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_lowpass(MZ, f0);
         }
     };
 
-    private Filter des_hpchz = new Filter("HpChZ#O/#V/#F", "Highpass Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequency #F") {
+    private final Filter des_hpchz = new Filter("HpChZ#O/#V/#F", "Highpass Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_highpass(MZ, f0);
         }
     };
 
-    private Filter des_bpchz = new Filter("BpChZ#O/#V/#R", "Bandpass Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequencies #R") {
+    private final Filter des_bpchz = new Filter("BpChZ#O/#V/#R", "Bandpass Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_bandpass(MZ, f0, f1);
         }
     };
 
-    private Filter des_bschz = new Filter("BsChZ#O/#V/#R", "Bandstop Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequencies #R") {
+    private final Filter des_bschz = new Filter("BsChZ#O/#V/#R", "Bandstop Chebyshev filter, matched z-transform, order #O, " + "passband ripple #VdB, -3.01dB frequencies #R") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             chebyshev(order, arg[0]);
             return do_bandstop(MZ, f0, f1);
         }
     };
 
-    private Filter des_lpbq = new Filter("LpBq#o/#V/#F", "Lowpass biquad filter, order #O, Q=#V, -3.01dB frequency #F") {
+    private final Filter des_lpbq = new Filter("LpBq#o/#V/#F", "Lowpass biquad filter, order #O, Q=#V, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1735,7 +1766,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_hpbq = new Filter("HpBq#o/#V/#F", "Highpass biquad filter, order #O, Q=#V, -3.01dB frequency #F") {
+    private final Filter des_hpbq = new Filter("HpBq#o/#V/#F", "Highpass biquad filter, order #O, Q=#V, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1744,7 +1776,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_bpbq = new Filter("BpBq#o/#V/#F", "Bandpass biquad filter, order #O, Q=#V, centre frequency #F") {
+    private final Filter des_bpbq = new Filter("BpBq#o/#V/#F", "Bandpass biquad filter, order #O, Q=#V, centre frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1753,7 +1786,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_bsbq = new Filter("BsBq#o/#V/#F", "Bandstop biquad filter, order #O, Q=#V, centre frequency #F") {
+    private final Filter des_bsbq = new Filter("BsBq#o/#V/#F", "Bandstop biquad filter, order #O, Q=#V, centre frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1762,7 +1796,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_apbq = new Filter("ApBq#o/#V/#F", "Allpass biquad filter, order #O, Q=#V, centre frequency #F") {
+    private final Filter des_apbq = new Filter("ApBq#o/#V/#F", "Allpass biquad filter, order #O, Q=#V, centre frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1771,7 +1806,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_pkbq = new Filter("PkBq#o/#V/#V/#F", "Peaking biquad filter, order #O, Q=#V, dBgain=#V, frequency #F") {
+    private final Filter des_pkbq = new Filter("PkBq#o/#V/#V/#F", "Peaking biquad filter, order #O, Q=#V, dBgain=#V, frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1781,7 +1817,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_lsbq = new Filter("LsBq#o/#V/#V/#F", "Lowpass shelving biquad filter, S=#V, dBgain=#V, frequency #F") {
+    private final Filter des_lsbq = new Filter("LsBq#o/#V/#V/#F", "Lowpass shelving biquad filter, S=#V, dBgain=#V, frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1799,7 +1836,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_hsbq = new Filter("HsBq#o/#V/#V/#F", "Highpass shelving biquad filter, S=#V, dBgain=#V, frequency #F") {
+    private final Filter des_hsbq = new Filter("HsBq#o/#V/#V/#F", "Highpass shelving biquad filter, S=#V, dBgain=#V, frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double omega = 2 * Math.PI * f0;
             double cosv = Math.cos(omega);
@@ -1818,7 +1856,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_lpbl = new Filter("LpBl/#F", "Lowpass Blackman window, -3.01dB frequency #F") {
+    private final Filter des_lpbl = new Filter("LpBl/#F", "Lowpass Blackman window, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double wid = 0.4109205 / f0;
             double tot, adj;
@@ -1845,7 +1884,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_lphm = new Filter("LpHm/#F", "Lowpass Hamming window, -3.01dB frequency #F") {
+    private final Filter des_lphm = new Filter("LpHm/#F", "Lowpass Hamming window, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double wid = 0.3262096 / f0;
             double tot, adj;
@@ -1872,7 +1912,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_lphn = new Filter("LpHn/#F", "Lowpass Hann window, -3.01dB frequency #F") {
+    private final Filter des_lphn = new Filter("LpHn/#F", "Lowpass Hann window, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double wid = 0.360144 / f0;
             double tot, adj;
@@ -1899,7 +1940,8 @@ public abstract class FidFilter {
         }
     };
 
-    private Filter des_lpba = new Filter("LpBa/#F", "Lowpass Bartlet (triangular) window, -3.01dB frequency #F") {
+    private final Filter des_lpba = new Filter("LpBa/#F", "Lowpass Bartlet (triangular) window, -3.01dB frequency #F") {
+        @Override
         List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg) {
             double wid = 0.3189435 / f0;
             double tot, adj;
@@ -1954,9 +1996,9 @@ public abstract class FidFilter {
          */
         abstract List<FidFilter> rout(double rate, double f0, double f1, int order, int n_arg, double[] arg);
         /** format for spec-string */
-        String format;
+        final String format;
         /** human-readable description of filter */
-        String text;
+        final String text;
         /* */
         public String toString() {
             return text + " [" + format + "]";
@@ -1966,7 +2008,7 @@ public abstract class FidFilter {
     /**
      * Filter table
      */
-    private Filter[] filter = {
+    private final Filter[] filter = {
         des_bpre,
         des_bsre,
         des_apre,
@@ -2040,7 +2082,7 @@ public abstract class FidFilter {
         String spec;
         double in_f0, in_f1;
         int in_adj;
-        double[] argarr = new double[MAXARG];
+        final double[] argarr = new double[MAXARG];
         double f0, f1;
         int adj;
         int n_arg;
@@ -2155,10 +2197,10 @@ public abstract class FidFilter {
     private class X {
         double resp;
         Spec sp;
-        Filter design;
+        final Filter design;
         List<FidFilter> rv = null;
-        double rate;
-        double f0;
+        final double rate;
+        final double f0;
         X(Spec sp, double rate, double f0) {
             design = filter[sp.fi];
             this.rate = rate;
@@ -2241,14 +2283,14 @@ public abstract class FidFilter {
 
     private class Y {
         List<FidFilter> rv = null;
-        Spec sp;
-        double rate;
-        double f0;
-        double f1;
+        final Spec sp;
+        final double rate;
+        final double f0;
+        final double f1;
         double r0, r1, err0, err1;
         boolean bpass = true;
         int cnt_design = 0;
-        Filter design;
+        final Filter design;
         Y(Spec sp, double rate, double f0, double f1) {
             this.sp = sp;
             this.rate = rate;

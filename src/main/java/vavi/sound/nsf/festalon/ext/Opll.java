@@ -111,14 +111,14 @@ class Opll {
     /** slot */
     private class Slot {
         /** */
-        Patch patch = new Patch();
+        final Patch patch = new Patch();
         /** 0 : modulator 1 : carrier */
-        int type;
+        final int type;
         /** OUTPUT */
         int feedback;
         /* Output value of slot */
         /** for Phase Generator (PG) */
-        int[] output = new int[2];
+        final int[] output = new int[2];
         /** Wave-table */
         short[] sinTable;
         /** Phase */
@@ -404,7 +404,7 @@ class Opll {
     private final byte[] instVol = new byte[6];
     private final int[] custInst = new int[8];
 
-    private int[] slotOnFlag = new int[6 * 2];
+    private final int[] slotOnFlag = new int[6 * 2];
 
     /** Pitch Modulator */
     private int pmPhase;

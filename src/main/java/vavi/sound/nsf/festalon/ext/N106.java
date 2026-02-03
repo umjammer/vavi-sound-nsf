@@ -43,7 +43,8 @@ public class N106 extends ExpSound {
     private int disabled;
     private final NesApu gApu;
 
-    private Reader namco4800Reader = new Reader() {
+    private final Reader namco4800Reader = new Reader() {
+        @Override
         public int exec(int address, int dataBus) {
 
             byte ret = iRam[dopol & 0x7f];
@@ -80,7 +81,8 @@ public class N106 extends ExpSound {
     }
 
     /** */
-    private Writer mapper19Writer = new Writer() {
+    private final Writer mapper19Writer = new Writer() {
+        @Override
         public void exec(int address, int value) {
             address &= 0xf800;
 
@@ -107,6 +109,7 @@ public class N106 extends ExpSound {
     private static final int TOINDEX = 16 + 1;
 
     /** 16:15 */
+    @Override
     public void syncHi(int ts) {
         cvbc = ts;
     }
@@ -127,6 +130,7 @@ public class N106 extends ExpSound {
         return duff;
     }
 
+    @Override
     public void fillHi() {
         int P, V;
         int cyclesuck;
@@ -182,9 +186,11 @@ public class N106 extends ExpSound {
         cvbc = timestamp;
     }
 
+    @Override
     public void kill() {
     }
 
+    @Override
     public void disable(int mask) {
         disabled = mask;
     }

@@ -258,7 +258,7 @@ class CommandListFidFilter extends FidFilter {
         }
     }
 
-    /** */
+    @Override
     public double filter_step(double val) {
         return 0;
     }

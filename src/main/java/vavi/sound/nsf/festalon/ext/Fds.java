@@ -76,17 +76,15 @@ public class Fds extends ExpSound {
     }
 
     /** */
-    private final Reader sReader = (address, dataBus) -> {
-
-        return switch (address & 0xf) {
-            case 0x0 -> (amplitude[0] | (dataBus & 0xc0));
-            case 0x2 -> (amplitude[1] | (dataBus & 0xc0));
-            default -> dataBus;
-        };
+    private final Reader sReader = (address, dataBus) -> switch (address & 0xf) {
+        case 0x0 -> (amplitude[0] | (dataBus & 0xc0));
+        case 0x2 -> (amplitude[1] | (dataBus & 0xc0));
+        default -> dataBus;
     };
 
     /** */
     private final Writer sWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
             fillHi();
 
@@ -257,7 +255,7 @@ public class Fds extends ExpSound {
         return curOut;
     }
 
-    /** */
+    @Override
     public void fillHi() {
         int x;
 
@@ -271,16 +269,16 @@ public class Fds extends ExpSound {
         fbc = gApu.cpu.timestamp;
     }
 
-    /** */
+    @Override
     public void syncHi(int ts) {
         fbc = ts;
     }
 
-    /** */
+    @Override
     public void kill() {
     }
 
-    /** */
+    @Override
     public void disable(int mask) {
         disabled = mask;
     }

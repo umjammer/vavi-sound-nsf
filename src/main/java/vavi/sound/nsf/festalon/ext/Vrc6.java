@@ -121,21 +121,25 @@ public class Vrc6 extends ExpSound {
         cvbc[2] = gApu.cpu.timestamp;
     }
 
+    @Override
     public void fillHi() {
         doSQV1HQ();
         doSQV2HQ();
         doSawVHQ();
     }
 
+    @Override
     public void syncHi(int ts) {
         for (int x = 0; x < 3; x++) {
             cvbc[x] = ts;
         }
     }
 
+    @Override
     public void kill() {
     }
 
+    @Override
     public void disable(int mask) {
         disabled = mask;
     }

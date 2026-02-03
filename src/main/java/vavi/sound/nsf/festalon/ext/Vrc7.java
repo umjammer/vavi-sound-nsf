@@ -45,7 +45,7 @@ public class Vrc7 extends ExpSound {
     /** */
     private final NesApu gApu;
 
-    /** */
+    @Override
     public void fillHi() {
 
         for (int V = bc; V < gApu.cpu.timestamp; V++) {
@@ -59,13 +59,14 @@ public class Vrc7 extends ExpSound {
         bc = gApu.cpu.timestamp;
     }
 
-    /** */
+    @Override
     public void syncHi(int ts) {
         bc = ts;
     }
 
     /** */
     private final Writer mapper85Writer = new Writer() {
+        @Override
         public void exec(int address, int value) {
 
             address |= (address & 8) << 1;
@@ -80,11 +81,11 @@ public class Vrc7 extends ExpSound {
         }
     };
 
-    /** */
+    @Override
     public void kill() {
     }
 
-    /** */
+    @Override
     public void disable(int mask) {
         ym.setMask(mask);
     }
