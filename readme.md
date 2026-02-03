@@ -30,10 +30,12 @@ clip.loop(Clip.LOOP_CONTINUOUSLY);
 ## References
 
 * [nsf](https://github.com/orangelando/nsf)
-* [Festalon](https://github.com/ahefner/festalon)
+* [Festalon original](https://projects.raphnet.net/)
+* [Festalon github](https://github.com/ahefner/festalon)
 
 ## TODO
 
  * ~~improve decoding speed (i7 imac)~~
    * on m2 ultra mac no problem
  * ~~use jpl instead of jul~~
+ * festalon
