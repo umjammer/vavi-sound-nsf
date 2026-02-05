@@ -30,7 +30,7 @@ final class WavConsumer implements APUSampleConsumer {
     private final Divider divider = new Divider(
             NSFRenderer.SYSTEM_CYCLES_PER_SEC/WAV_SAMPLES_PER_SEC);
 
-    private Sink sink;
+    private final Sink sink;
     private float[] filter;
     private FilteredSampleBuffer samples;
     private TotalingSampleBuffer movingAverage;
