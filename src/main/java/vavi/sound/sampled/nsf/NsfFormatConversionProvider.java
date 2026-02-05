@@ -9,9 +9,7 @@ package vavi.sound.sampled.nsf;
 import java.io.IOException;
 
 import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioFormat.Encoding;
 import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.spi.FormatConversionProvider;
 
 import static javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED;

@@ -10,9 +10,10 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.logging.Level;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -21,7 +22,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.sound.sampled.spi.AudioFileReader;
 
-import vavi.util.Debug;
+import static java.lang.System.getLogger;
 
 
 /**
@@ -33,6 +34,8 @@ import vavi.util.Debug;
  * @version 0.00 201027 nsano initial version <br>
  */
 public class NsfAudioFileReader extends AudioFileReader {
+
+    private static final Logger logger = getLogger(NsfAudioFileReader.class.getName());
 
     @Override
     public AudioFileFormat getAudioFileFormat(File file) throws UnsupportedAudioFileException, IOException {
@@ -74,13 +77,14 @@ public class NsfAudioFileReader extends AudioFileReader {
                 throw new UnsupportedAudioFileException("not nsf header");
             }
         } catch (IOException e) {
-Debug.println(Level.FINE, e.getMessage());
+logger.log(Level.DEBUG, e.toString());
+logger.log(Level.TRACE, e.getMessage(), e);
             throw (UnsupportedAudioFileException) new UnsupportedAudioFileException(e.getMessage()).initCause(e);
         } finally {
             try {
                 bitStream.reset();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.TRACE, e.toString());
             }
         }
         AudioFormat format = new AudioFormat(NsfEncoding.NSF, 44100, 16, 1, AudioSystem.NOT_SPECIFIED, AudioSystem.NOT_SPECIFIED, true);

@@ -28,7 +28,7 @@ public class NsfFileFormatType extends AudioFileFormat.Type {
      * @param name the name of the NSF File Format.
      * @param extension the file extension for this NSF File Format.
      */
-    public NsfFileFormatType(String name, String extension) {
+    private NsfFileFormatType(String name, String extension) {
         super(name, extension);
     }
 }

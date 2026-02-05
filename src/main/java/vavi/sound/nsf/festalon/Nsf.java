@@ -25,16 +25,18 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
-import java.util.logging.Level;
 
-import vavi.sound.nsf.festalon.ext.ay;
-import vavi.sound.nsf.festalon.ext.fds;
-import vavi.sound.nsf.festalon.ext.mmc5;
-import vavi.sound.nsf.festalon.ext.n106;
-import vavi.sound.nsf.festalon.ext.vrc6;
-import vavi.sound.nsf.festalon.ext.vrc7;
-import vavi.util.Debug;
+import vavi.sound.nsf.festalon.ext.Ay;
+import vavi.sound.nsf.festalon.ext.Fds;
+import vavi.sound.nsf.festalon.ext.Mmc5;
+import vavi.sound.nsf.festalon.ext.N106;
+import vavi.sound.nsf.festalon.ext.Vrc6;
+import vavi.sound.nsf.festalon.ext.Vrc7;
+
+import static java.lang.System.getLogger;
 
 
 /**
@@ -44,6 +46,9 @@ import vavi.util.Debug;
  * @version 0.00 060310 nsano initial version <br>
  */
 class Nsf extends Plugin {
+
+    private static final Logger logger = getLogger(Nsf.class.getName());
+
     /** */
     static final int FESTAGFI_TAGS_DATA = 0x2;
     /** */
@@ -79,7 +84,7 @@ class Nsf extends Plugin {
     /** */
     private byte[] exWRam;
     /** */
-    private byte[] ram = new byte[0x800];
+    private final byte[] ram = new byte[0x800];
     /** */
     private byte songReload;
     /** */
@@ -102,7 +107,7 @@ class Nsf extends Plugin {
         static final int SIZE = 118;
 
         /** NESM^Z */
-        byte[] id = new byte[5];
+        final byte[] id = new byte[5];
         int version;
         int totalSongs;
         int startingSong;
@@ -112,17 +117,17 @@ class Nsf extends Plugin {
         int initAddressHigh;
         int playAddressLow;
         int playAddressHigh;
-        byte[] gameName = new byte[32];
-        byte[] artist = new byte[32];
-        byte[] copyright = new byte[32];
+        final byte[] gameName = new byte[32];
+        final byte[] artist = new byte[32];
+        final byte[] copyright = new byte[32];
         /** Unused */
-        byte[] ntscSpeed = new byte[2];
-        byte[] bankSwitch = new byte[8];
+        final byte[] ntscSpeed = new byte[2];
+        final byte[] bankSwitch = new byte[8];
         /** Unused */
-        byte[] palSpeed = new byte[2];
+        final byte[] palSpeed = new byte[2];
         int videoSystem;
         int soundChip;
-        byte[] expansion = new byte[4];
+        final byte[] expansion = new byte[4];
 
         static Header readFrom(InputStream is) throws IOException {
             Header h = new Header();
@@ -197,18 +202,44 @@ class Nsf extends Plugin {
     }
 
     /** */
-    private Writer amlWriter = new Writer() {
-        public void exec(int address, int value) {
-            cpu._private[cpu.a & 0x7ff] = (byte) value;
+    private final Writer amlWriter = new Writer() {
+        @Override public void exec(int address, int value) {
+            int addr = address & 0x7ff;
+            if (addr == 0x770 || addr == 0xfb || addr == 0xfa) {
+                 logger.log(Level.TRACE, String.format("Write to RAM[%04x]: %02x at ts=%d, PC=%04x", addr, value, cpu.timestamp, cpu.pc));
+            }
+            ram[addr] = (byte) value;
         }
     };
 
     /** */
-    private Reader amlReader = new Reader() {
-        public int exec(int address, int dataBus) {
-            return cpu._private[cpu.a & 0x7ff];
+    private final Reader amlReader = new Reader() {
+        @Override public int exec(int address, int dataBus) {
+            return ram[address & 0x7ff] & 0xff;
+        }
+        @Override public String toString() {
+            return "amlReader";
         }
     };
+
+    /** */
+    private final Reader trapReader = new Reader() {
+        @Override public int exec(int address, int dataBus) {
+            // JMP $3800: 4C 00 38
+            if (address == 0x3800) return 0x4C;
+            if (address == 0x3801) return 0x00;
+            if (address == 0x3802) return 0x38;
+            return 0;
+        }
+        @Override public String toString() {
+            return "trapReader";
+        }
+    };
+
+    private final Writer ignorantWriter = (address, value) -> {
+    };
+
+    private final Reader zeroReader = (address, dataBus) -> 0;
 
     /** */
     public void close() {
@@ -220,6 +251,7 @@ class Nsf extends Plugin {
 
     /** */
     private void setBank(int address, int bank) {
+        logger.log(Level.TRACE, "DEBUG: setBank address=" + Integer.toHexString(address) + " bank=" + bank);
         bank &= nsfMaxBank;
         if ((soundChip & 4) != 0) {
             System.arraycopy(nsfData, bank << 12, exWRam, address - 0x6000, 4096);
@@ -312,39 +344,47 @@ class Nsf extends Plugin {
     /** */
     private void loadNSF(byte[] buf, int size, int info_only) throws IOException {
         Header nsfHeader = Header.readFrom(new ByteArrayInputStream(buf));
-Debug.println(Level.FINE, nsfHeader);
+logger.log(Level.TRACE, nsfHeader);
 
         nsfHeader.gameName[31] = nsfHeader.artist[31] = nsfHeader.copyright[31] = 0;
 
-        gameName = new String(nsfHeader.gameName);
-Debug.printf(Level.FINE, "gameName: %s\n", gameName);
-        artist = new String(nsfHeader.artist);
-Debug.printf(Level.FINE, "artist: %s\n", artist);
-        copyright = new String(nsfHeader.copyright);
-Debug.printf(Level.FINE, "copyright: %s\n", copyright);
+        gameName = new String(nsfHeader.gameName).replace("\0", "");
+logger.log(Level.TRACE, "gameName: " + gameName);
+        artist = new String(nsfHeader.artist).replace("\0", "");
+logger.log(Level.TRACE, "artist: " + artist);
+        copyright = new String(nsfHeader.copyright).replace("\0", "");
+logger.log(Level.TRACE, "copyright: " + copyright);
 
         loadAddr = nsfHeader.loadAddressLow;
         loadAddr |= nsfHeader.loadAddressHigh << 8;
 
+        startingSong = nsfHeader.startingSong;
+        totalSongs = nsfHeader.totalSongs;
+        soundChip = nsfHeader.soundChip;
+        bankSwitch = nsfHeader.bankSwitch;
+        pal = nsfHeader.palSpeed[0] != 0; // rough guess? Or videoSystem?
+        // videoSystem 0=NTSC, 1=PAL, 2=Dual.
+        if ((nsfHeader.videoSystem & 1) != 0) pal = true;
+
         if (loadAddr < 0x6000) { // A buggy NSF...
             loadAddr += 0x8000;
         }
-Debug.printf(Level.FINE, "loadAddr: %04x\n", loadAddr);
+logger.log(Level.TRACE, "loadAddr: %04x".formatted(loadAddr));
 
         initAddr = nsfHeader.initAddressLow;
         initAddr |= nsfHeader.initAddressHigh << 8;
-Debug.printf(Level.FINE, "initAddr: %04x\n", initAddr);
+logger.log(Level.TRACE, "initAddr: %04x".formatted(initAddr));
 
         playAddr = nsfHeader.playAddressLow;
         playAddr |= nsfHeader.playAddressHigh << 8;
-Debug.printf(Level.FINE, "playAddr: %04x\n", playAddr);
+logger.log(Level.TRACE, "playAddr: %04x".formatted(playAddr));
 
         nsfSize = size - 0x80;
-Debug.printf(Level.FINE, "nsfSize: %04x\n", nsfSize);
+logger.log(Level.TRACE, "nsfSize: %04x".formatted(nsfSize));
 
         nsfMaxBank = (nsfSize + (loadAddr & 0xfff) + 4095) / 4096;
-        nsfMaxBank = uppow2(nsfMaxBank);
-Debug.printf(Level.FINE, "nsfMaxBank: %04x\n", nsfMaxBank);
+        nsfMaxBank = upPow2(nsfMaxBank);
+logger.log(Level.TRACE, "nsfMaxBank: %04x".formatted(nsfMaxBank));
 
         if (info_only == 0) {
             nsfData = new byte[nsfMaxBank * 4096];
@@ -353,16 +393,16 @@ Debug.printf(Level.FINE, "nsfMaxBank: %04x\n", nsfMaxBank);
             nsfRawDataSize = nsfSize;
 
             Arrays.fill(nsfData, 0, nsfMaxBank * 4096, (byte) 0x00);
-            System.arraycopy(buf, 0, nsfData, nsfRawDataP, nsfSize);
+            System.arraycopy(buf, 0x80, nsfData, nsfRawDataP, nsfSize);
 
             nsfMaxBank--;
-Debug.println(Level.FINE, "here 1");
+logger.log(Level.TRACE, "here 1");
         } else if (info_only == FESTAGFI_TAGS_DATA) {
             nsfData = new byte[nsfSize];
             nsfRawData = nsfData;
             nsfRawDataSize = nsfSize;
             System.arraycopy(buf, 0, nsfData, 0, nsfSize);
-Debug.println(Level.FINE, "here 2");
+logger.log(Level.TRACE, "here 2");
         }
 
         videoSystem = nsfHeader.videoSystem;
@@ -426,12 +466,25 @@ Debug.println(Level.FINE, "here 2");
         apu = new NesApu(cpu);
 
         cpu.power();
-        apu.power();
 
         cpu.setReader(0x0000, 0x1fff, amlReader, ram);
         cpu.setWriter(0x0000, 0x1fff, amlWriter, ram);
 
-        doReset = 1;
+        // Fill gaps with ignorant writers first
+        cpu.setWriter(0x2000, 0x3fff, ignorantWriter, null);
+        cpu.setReader(0x2000, 0x37ff, zeroReader, null);
+        cpu.setReader(0x3800, 0x3802, trapReader, null);
+        cpu.setReader(0x3803, 0x3fff, zeroReader, null);
+
+        cpu.setWriter(0x4000, 0x5fff, ignorantWriter, null);
+        cpu.setReader(0x4000, 0x5fff, zeroReader, null);
+
+        cpu.setWriter(0x6000, 0xffff, ignorantWriter, null); 
+        cpu.setReader(0x6000, 0xffff, zeroReader, null); // Added safety
+
+        apu.power(); // Install APU
+
+        doReset = 0; // 1;
 
         cart = new NesCart();
 
@@ -442,18 +495,36 @@ Debug.println(Level.FINE, "here 2");
             Arrays.fill(exWRam, 0, 32768 + 8192, (byte) 0x00);
             cpu.setWriter(0x6000, 0xdfff, cart.cartWriter, cart);
             cpu.setReader(0x6000, 0xffff, cart.cartReader, cart);
-Debug.println(Level.FINE, "here 1");
         } else {
-            Arrays.fill(exWRam, 0, 8192, (byte) 0x00);
-            cpu.setReader(0x6000, 0x7fff, cart.cartReader, cart);
-            cpu.setWriter(0x6000, 0x7fff, cart.cartWriter, cart);
+            byte[] nsfDataRaw = nsfData; // Keep reference to raw data
+            if (bsOn == 0) {
+//                int offset = loadAddr & 0xfff;
+//                if (offset != 0) {
+//                    byte[] padded = new byte[nsfData.length + offset];
+//                    System.arraycopy(nsfData, 0, padded, offset, nsfData.length);
+//                    nsfData = padded;
+//                }
+            }
 
-            cart.setupPRG(0, nsfData, ((nsfMaxBank + 1) * 4096), false);
+            cart.setupPRG(0, nsfData, nsfData.length, false);
             cart.setupPRG(1, exWRam, 8192, true);
+            cart.setupPRG(2, nsfDataRaw, nsfDataRaw.length, false); // Chip 2 for unpadded mirror
+
+            for (int i = 0; i < 8; i++) {
+                // Map 8000-FFFF to Chip 2 (Raw) initially
+                // logic: cart.setPrg4r(2, address, bank)
+                // If bsOn=0, bank is 0.
+                cart.setPrg4r(2, 0x8000 + i * 0x1000, bankSwitch[i]);
+                cpu.setReader(0x8000 + i * 0x1000, 0x8fff + i * 0x1000, cart.cartReader, cart);
+                cpu.setWriter(0x8000 + i * 0x1000, 0x8fff + i * 0x1000, cart.cartWriter, cart);
+            }
+
+
 
             cart.setPrg8r(1, 0x6000, 0);
+            cpu.setReader(0x6000, 0x7fff, cart.cartReader, cart);
+            cpu.setWriter(0x6000, 0x7fff, cart.cartWriter, cart);
             cpu.setReader(0x8000, 0xffff, cart.cartReader, cart);
-Debug.println(Level.FINE, "here 2 *");
         }
 
         bsOn = 0;
@@ -467,8 +538,42 @@ Debug.println(Level.FINE, "here 2 *");
             }
         }
 
-        cpu.setWriter(0x2000, 0x3fff, null, null);
-        cpu.setReader(0x2000, 0x3fff, null, null);
+        logger.log(Level.TRACE, "LoadAddr: " + Integer.toHexString(loadAddr));
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 16; i++) {
+             sb.append(Integer.toHexString(cpu.readDm(loadAddr + i))).append(" ");
+        }
+        logger.log(Level.TRACE, "Mem at LoadAddr: " + sb);
+
+        logger.log(Level.TRACE, "InitAddr: " + Integer.toHexString(initAddr));
+        sb = new StringBuilder();
+        for (int i = 0; i < 256; i++) {
+             sb.append(Integer.toHexString(cpu.readDm(initAddr + i))).append(" ");
+        }
+        logger.log(Level.TRACE, "Mem at InitAddr: " + sb);
+
+        logger.log(Level.TRACE, "PlayAddr: " + Integer.toHexString(playAddr));
+        sb = new StringBuilder();
+        for (int i = 0; i < 256; i++) {
+             sb.append(Integer.toHexString(cpu.readDm(playAddr + i))).append(" ");
+        }
+        logger.log(Level.TRACE, "Mem at PlayAddr: " + sb);
+
+        logger.log(Level.TRACE, "Mem at f41b: ");
+        sb = new StringBuilder();
+        for (int i = 0; i < 64; i++) {
+             sb.append(Integer.toHexString(cpu.readDm(0xf41b + i))).append(" ");
+        }
+        logger.log(Level.TRACE, sb.toString());
+
+        if (nsfData != null && nsfData.length > 0xe00 + 16) {
+             sb = new StringBuilder();
+             for (int i = 0; i < 16; i++) {
+                  sb.append(String.format("%02x ", nsfData[0xe00 + i]));
+             }
+             logger.log(Level.TRACE, "nsfData at 0xe00 (Source for ZP?): " + sb);
+             logger.log(Level.TRACE, "nsfData[0xefb]: %02x".formatted( nsfData[0xefb]));
+        }
 
         cpu.setWriter(0x5ff6, 0x5fff, nsfWriter, this);
 
@@ -485,7 +590,7 @@ Debug.println(Level.FINE, "here 2 *");
 
         if (!pal) {
             ExpSound[] expSounds = {
-                new vrc6(apu), new vrc7(apu), new fds(apu), new mmc5(apu), new n106(apu), new ay(apu)
+                new Vrc6(apu), new Vrc7(apu), new Fds(apu), new Mmc5(apu), new N106(apu), new Ay(apu)
             };
 
             for (int i = 0; i < expSounds.length; i++) {
@@ -501,7 +606,8 @@ Debug.println(Level.FINE, "here 2 *");
     }
 
     /** */
-    private Writer nsfWriter = new Writer() {
+    private final Writer nsfWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
             if (address >= 0x5ff6 && address <= 0x5fff) { // Bank-switching
                 if (address <= 0x5ff7 && (soundChip & 4) == 0) {
@@ -519,10 +625,15 @@ Debug.println(Level.FINE, "here 2 *");
     /** */
     private void clri() {
 
-        for (int i = 0; i < 0x800; i++) {
-            ram[i] = 0x00;
-        }
+        for (int i = 0; i < 0x800; i++)
+            ram[i] = 0;
 
+        // JMP $0000 (Spin loop for RTS return)
+        ram[0] = 0x4C;
+        ram[1] = 0x00;
+        ram[2] = 0x00;
+
+        songReload = 1;
         cpu.writeDm(0x4015, 0x00);
 
         for (int i = 0; i < 0x14; i++) {
@@ -565,12 +676,20 @@ Debug.println(Level.FINE, "here 2 *");
      * @param count [0]
      * @return wave
      */
+    @Override
     public float[] emulate(int[] count) {
+        if (count != null && count.length > 0 && count[0] > apu.waveFinalLen) {
+            apu.waveFinalLen = count[0];
+            apu.waveFinal = new float[apu.waveFinalLen];
+        }
+
         // Reset the stack if we're going to call the play routine or the init
         // routine.
         if (cpu.pc == 0x3800 || songReload != 0) {
+            if (songReload == 0) logger.log(Level.TRACE, "APU: Calling PLAY routine at " + Integer.toHexString(playAddr));
+            // System.err.println("Re-entering frame: pc=" + String.format("%04x", cpu.pc));
             if (songReload != 0) {
-Debug.println(Level.FINE, "clri");
+                // System.err.println("Initializing Song: " + currentSong + " InitAddr=" + Integer.toHexString(initAddr));
                 clri();
             }
 
@@ -585,8 +704,38 @@ Debug.println(Level.FINE, "clri");
                 cpu.pc = initAddr;
                 songReload = 0;
             } else {
+                logger.log(Level.TRACE, String.format("Entering PLAY: 0x770=%02x, 0xfb=%02x, 0xfa=%02x", ram[0x770], ram[0xfb], ram[0xfa]));
+                if (ram[0xfb] != 0 && ram[0x770] == 0) {
+                     logger.log(Level.DEBUG, String.format("Hack triggered: ram[0x770] = ram[0xfb] (%02x)", ram[0xfb]));
+                     ram[0x770] = ram[0xfb];
+                }
+                
+                if (ram[0x770] == 0) {
+                     logger.log(Level.TRACE, "ram[0x770] is 0 before play routine!");
+                }
+
+            // Set return address to 0x3800 (which contains JMP $3800)
+            // Stack grows down. Push High, then Low.
+            cpu.s = 0xFF;
+            ram[0x100 + cpu.s] = (byte) 0x37; // High byte of Return Address - 1 (0x37FF)
+            cpu.s--;
+            ram[0x100 + cpu.s] = (byte) 0xFF; // Low byte - 1 (0x37FF) for RTS
+            cpu.s--;
+
                 cpu.pc = playAddr;
+                //      System.err.print(Integer.toHexString(cpu.readDm(playAddr + i) & 0xff) + " ");
+                // }
+                // System.err.println();
             }
+        } else {
+             // System.err.println("Skipping re-entry: pc=" + String.format("%04x", cpu.pc));
+             if (nsfData != null) {
+                 // int offset = cpu.pc - (loadAddr & 0xf000);
+//                  if (offset >= 0 && offset + 2 < nsfData.length) {
+//                      System.err.println("Opcode at PC: " + String.format("%02x %02x %02x", 
+//                          nsfData[offset], nsfData[offset+1], nsfData[offset+2]));
+//                  }
+             }
         }
 
         if (pal) {
@@ -598,11 +747,19 @@ Debug.println(Level.FINE, "clri");
 
         cpu.hackSpeed(apu);
 
+        if (cpu.timestamp < 2000) { // Dump on first few frames
+             StringBuilder sb = new StringBuilder("RAM[0-15]: ");
+             for(int i=0; i<16; i++) sb.append(String.format("%02x ", ram[i]));
+             logger.log(Level.DEBUG, sb.toString());
+             logger.log(Level.DEBUG, String.format("RAM[0xfb]: %02x", ram[0xfb]));
+             logger.log(Level.DEBUG, String.format("RAM[0x770]: %02x", ram[0x770]));
+        }
+
         count[0] = apu.emulateFlush();
         return apu.waveFinal;
     }
 
-    /** */
+    @Override
     public void disable(int t) {
         apu.disable(t);
     }
@@ -625,7 +782,7 @@ Debug.println(Level.FINE, "clri");
                     return 0;
                 }
 
-                chunk_size = dis.readInt();
+                chunk_size = readIntLE(dis);
                 size -= 4;
                 if (size < 4) {
                     return 0;
@@ -634,20 +791,20 @@ Debug.println(Level.FINE, "clri");
                 dis.readFully(tb, 0, 4);
                 size -= 4;
 
-                // System.err.printf("\nChunk: %.4s %d\n", tb, chunk_size);
+//logger.log(Level.TRACE, "Chunk: %.4s %d".formatted(tb, chunk_size));
                 String t = new String(tb);
                 if (t.equals("INFO")) {
                     if (chunk_size < 8) {
                         return 0;
                     }
 
-                    loadAddr = dis.readUnsignedShort();
+                    loadAddr = readShortLE(dis);
                     size -= 2;
 
-                    initAddr = dis.readUnsignedShort();
+                    initAddr = readShortLE(dis);
                     size -= 2;
 
-                    playAddr = dis.readUnsignedShort();
+                    playAddr = readShortLE(dis);
                     size -= 2;
 
                     videoSystem = dis.readUnsignedByte();
@@ -689,15 +846,25 @@ Debug.println(Level.FINE, "clri");
                 } else if (t.equals("NEND")) {
                     if (chunk_size == 0 && nbuf != null) {
                         nsfMaxBank = ((nsfSize + (loadAddr & 0xfff) + 4095) / 4096);
-                        nsfMaxBank = uppow2(nsfMaxBank);
+                        nsfMaxBank = upPow2(nsfMaxBank);
 
                         if (info_only == 0) {
                             nsfData = new byte[nsfMaxBank * 4096];
                             // return 0;
-                            System.arraycopy(nbuf, 0, nsfData, loadAddr & 0xfff, nsfSize);
+                            int nsfRawDataP = loadAddr & 0xfff;
+                            if (bsOn != 0) {
+                                nsfRawDataP = 0; // If there is BS, just load it into the buffer base.
+                            }
+
+                            logger.log(Level.DEBUG, "Debug: Padding " + nsfRawDataP + " bytes.");
+                            logger.log(Level.DEBUG, "Debug: buf[0x80] = " + Integer.toHexString(buf[0x80] & 0xff));
+                            StringBuilder sb = new StringBuilder();
+                            for (int i = 0; i < 16; i++) sb.append(Integer.toHexString(buf[0x80 + i] & 0xff)).append(" ");
+                            logger.log(Level.DEBUG, sb.toString());
+
+                            System.arraycopy(buf, 0x80, nsfData, nsfRawDataP, nsfSize);
 
                             nsfRawData = nsfData;
-                            int nsfRawDataP = loadAddr & 0xfff;
                             nsfRawDataSize = nsfSize;
                         }
                         nsfMaxBank--;
@@ -724,8 +891,8 @@ Debug.println(Level.FINE, "clri");
                     chunk_size -= count * 4;
 
                     while (count-- > 0) {
-                        songLengths[ws] = dis.readInt();
-                        // System.err.printf("%d\n",fe.SongLengths[ws]/1000);
+                        songLengths[ws] = readIntLE(dis);
+//logger.log(Level.DEBUG, "%d".formatted(fe.SongLengths[ws] / 1000));
                         ws++;
                     }
                 } else if (t.equals("fade")) {
@@ -734,8 +901,8 @@ Debug.println(Level.FINE, "clri");
                     chunk_size -= count * 4;
 
                     while (count-- > 0) {
-                        songFades[ws] = dis.readInt();
-                        // System.err.printf("%d\n",fe.SongFades[ws]);
+                        songFades[ws] = readIntLE(dis);
+//logger.log(Level.DEBUG, "%d".formatted(fe.SongFades[ws]));
                         ws++;
                     }
                 } else if (t.equals("auth")) {
@@ -759,14 +926,14 @@ Debug.println(Level.FINE, "clri");
                     }
                 } else if (tb[0] >= 'A' && tb[0] <= 'Z') { // Unrecognized
                     // mandatory chunk
-                    // System.err.print("unknown");
+//logger.log(Level.DEBUG, "unknown");
                     return 0;
                 } else {
                     // mmm...store the unknown chunk in memory so it can be used
                     // by
                     // createNSFE()
                     // if necessary.
-                    // System.err.printf("Boop: %.4s\n",tb);
+//logger.log(Level.DEBUG, "Boop: %.4s".formatted(tb));
                     // NSFExtra = NSFExtra(NSFExtraSize + 8 + chunk_size);
                     System.arraycopy(buf, bufP - 8, nsfExtra, nsfExtraSize, 8 + chunk_size);
                     nsfExtraSize += 8 + chunk_size;
@@ -776,14 +943,14 @@ Debug.println(Level.FINE, "clri");
             }
             return 1;
         } catch (IOException e) {
-e.printStackTrace();
+logger.log(Level.TRACE, e.getMessage(), e);
             assert false;
             return 0;
         }
     }
 
     /** */
-    private static int uppow2(int n) {
+    private static int upPow2(int n) {
         for (int x = 31; x >= 0; x--) {
             if ((n & (1 << x)) != 0) {
                 if ((1 << x) != n) {
@@ -796,14 +963,14 @@ e.printStackTrace();
     }
 
     /**
-     * @param totalsize out
+     * @param totalSize out
      */
-    private byte[] createNSFE(int[] totalsize) {
+    private byte[] createNSFE(int[] totalSize) {
         try {
-            int cursize;
+            int curSize;
             ByteArrayOutputStream buffer;
 
-            cursize = 0;
+            curSize = 0;
             buffer = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(buffer);
 
@@ -892,7 +1059,7 @@ e.printStackTrace();
             dos.writeBytes("NEND");
             dos.writeInt(0); // TODO
 
-            totalsize[0] = cursize;
+            totalSize[0] = curSize;
             return buffer.toByteArray();
 
         } catch (IOException e) {
@@ -911,8 +1078,8 @@ e.printStackTrace();
     /**
      * @before should call {@link #setSound(int, int)}
      */
-    public int setLowpass(boolean on, int corner, int order) {
-        return apu.filter.setLowpass(on, corner, order);
+    public int setLowPass(boolean on, int corner, int order) {
+        return apu.filter.setLowPass(on, corner, order);
     }
 
     /** */
@@ -928,5 +1095,19 @@ e.printStackTrace();
 //            apu.waveFinal = null;
 //        }
         apu.waveFinal = new float[apu.waveFinalLen];
+    }
+
+    private static int readIntLE(DataInputStream dis) throws IOException {
+        int b1 = dis.readUnsignedByte();
+        int b2 = dis.readUnsignedByte();
+        int b3 = dis.readUnsignedByte();
+        int b4 = dis.readUnsignedByte();
+        return (b1) | (b2 << 8) | (b3 << 16) | (b4 << 24);
+    }
+
+    private static int readShortLE(DataInputStream dis) throws IOException {
+        int b1 = dis.readUnsignedByte();
+        int b2 = dis.readUnsignedByte();
+        return (b1) | (b2 << 8);
     }
 }

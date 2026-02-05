@@ -39,7 +39,7 @@ class CommandListFidFilter extends FidFilter {
     /** Number of bytes to memmove */
     private int mov_cnt;
     /** */
-    private double[] buf = new double[buf_size];
+    private final double[] buf = new double[buf_size];
 
     /**
      * Filter processing routine. This is designed to avoid too many branches,
@@ -258,7 +258,7 @@ class CommandListFidFilter extends FidFilter {
         }
     }
 
-    /** */
+    @Override
     public double filter_step(double val) {
         return 0;
     }

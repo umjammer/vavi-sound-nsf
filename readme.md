@@ -7,7 +7,20 @@
 
 <img src="https://github.com/umjammer/vavi-sound-nsf/assets/493908/f9af5c46-ad4b-4e9b-801c-8ac87cf2b669" width=160 alt="nes logo"/><sub><a href="https://www.nintendo.com/">© Nintendo</a></sub>
 
-[NSF](https://www.nesdev.org/wiki/NSF) Java Sound SPI powered by [nsf](https://github.com/orangelando/nsf)
+[NSF](https://www.nesdev.org/wiki/NSF) Java Sound SPI powered by [nsf](https://github.com/orangelando/nsf) and festalon (wip)
+
+### chips
+
+| name | status | comment |
+|------|:------:|---------|
+| AY   |        |         |
+| FDS  |   ️    |         |
+| MMC5 |   ️    |         |
+| N106 |   ️    |         |
+| OPLL |   ️    |         |
+| VRC6 |        |         |
+| VRC7 |   ️    |         |
+
 
 ## Install
 
@@ -30,9 +43,14 @@ clip.loop(Clip.LOOP_CONTINUOUSLY);
 ## References
 
 * [nsf](https://github.com/orangelando/nsf)
-* [Festalon](https://github.com/ahefner/festalon)
+* [Festalon original](https://projects.raphnet.net/)
+* [Festalon github](https://github.com/ahefner/festalon)
 
 ## TODO
 
  * ~~improve decoding speed (i7 imac)~~
    * on m2 ultra mac no problem
+ * ~~use jpl instead of jul~~
+ * ~~festalon~~
+   * spi
+   * fidlib

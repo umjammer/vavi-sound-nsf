@@ -31,40 +31,40 @@ import vavi.sound.nsf.festalon.Writer;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
-public class fds extends ExpSound {
+public class Fds extends ExpSound {
 
     /** */
     private static final double FDSClock = 1789772.7272727272727272 / 2;
 
     /** Cycles per PCM sample */
-    private long cycles;
+    private final long cycles;
     /** Cycle counter */
     private long count;
     /** Envelope cycle counter */
-    private long envcount;
-    private int b19shiftreg60;
+    private long envCount;
+    private int b19ShiftReg60;
     private int b24adder66;
     private int b24latch68;
     private int b17latch76;
     /** Counter to divide frequency by 8. */
-    private int clockcount;
+    private int clockCount;
     /** Modulation register. */
-    private byte b8shiftreg88;
+    private byte b8ShiftReg88;
     /** Current amplitudes. */
-    private byte[] amplitude = new byte[2];
-    private byte[] speedo = new byte[2];
-    private byte mwcount;
-    private byte mwstart;
+    private final byte[] amplitude = new byte[2];
+    private final byte[] speedO = new byte[2];
+    private byte mwCount;
+    private byte mwStart;
     /** Modulation waveform */
-    private byte[] mwave = new byte[0x20];
+    private final byte[] mWave = new byte[0x20];
     /** Game-defined waveform(carrier) */
-    private byte[] cwave = new byte[0x40];
-    private byte[] spsg = new byte[0xB];
+    private final byte[] cWave = new byte[0x40];
+    private final byte[] sPsg = new byte[0xB];
     private int fbc;
-    private int[] counto = new int[2];
+    private final int[] countO = new int[2];
     private int disabled;
-    private int curout;
-    private NesApu gapu;
+    private int curOut;
+    private final NesApu gApu;
 
     /** */
     private void redoCO() {
@@ -72,21 +72,19 @@ public class fds extends ExpSound {
         if (k > 0x20) {
             k = 0x20;
         }
-        curout = (cwave[b24latch68 >> 19] * k) * 4 / ((spsg[0x9] & 0x3) + 2);
+        curOut = (cWave[b24latch68 >> 19] * k) * 4 / ((sPsg[0x9] & 0x3) + 2);
     }
 
     /** */
-    private Reader sReader = (address, dataBus) -> {
-
-        return switch (address & 0xf) {
-            case 0x0 -> (amplitude[0] | (dataBus & 0xc0));
-            case 0x2 -> (amplitude[1] | (dataBus & 0xc0));
-            default -> dataBus;
-        };
+    private final Reader sReader = (address, dataBus) -> switch (address & 0xf) {
+        case 0x0 -> (amplitude[0] | (dataBus & 0xc0));
+        case 0x2 -> (amplitude[1] | (dataBus & 0xc0));
+        default -> dataBus;
     };
 
     /** */
-    private Writer sWriter = new Writer() {
+    private final Writer sWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
             fillHi();
 
@@ -103,20 +101,20 @@ public class fds extends ExpSound {
                 break;
             case 0x7:
                 b17latch76 = 0;
-                spsg[0x5] = 0;
+                sPsg[0x5] = 0;
                 // printf("$%04x:$%02x\n",A,V);
                 break;
             case 0x8:
                 b17latch76 = 0;
                 // printf("%d:$%02x, $%02x\n",SPSG[0x5],V,b17latch76);
-                mwave[spsg[0x5] & 0x1F] = (byte) (value & 0x7);
-                spsg[0x5] = (byte) ((spsg[0x5] + 1) & 0x1F);
+                mWave[sPsg[0x5] & 0x1F] = (byte) (value & 0x7);
+                sPsg[0x5] = (byte) ((sPsg[0x5] + 1) & 0x1F);
                 break;
             }
             // if(A>=0x7 && A!=0x8 && A<=0xF)
             // if(A==0xA || A==0x9)
             // printf("$%04x:$%02x\n",A,V);
-            spsg[address] = (byte) value;
+            sPsg[address] = (byte) value;
 
             if (address == 0x9) {
                 redoCO();
@@ -137,10 +135,10 @@ public class fds extends ExpSound {
         int x;
 
         for (x = 0; x < 2; x++) {
-            if ((spsg[x << 2] & 0x80) == 0 && (spsg[0x3] & 0x40) == 0) {
-                if (counto[x] <= 0) {
-                    if ((spsg[x << 2] & 0x80) == 0) {
-                        if ((spsg[x << 2] & 0x40) != 0) {
+            if ((sPsg[x << 2] & 0x80) == 0 && (sPsg[0x3] & 0x40) == 0) {
+                if (countO[x] <= 0) {
+                    if ((sPsg[x << 2] & 0x80) == 0) {
+                        if ((sPsg[x << 2] & 0x40) != 0) {
                             if (amplitude[x] < 0x3F) {
                                 amplitude[x]++;
                             }
@@ -150,36 +148,36 @@ public class fds extends ExpSound {
                             }
                         }
                     }
-                    counto[x] = (spsg[x << 2] & 0x3F);
+                    countO[x] = (sPsg[x << 2] & 0x3F);
                     if (x == 0) {
                         redoCO();
                     }
                 } else {
-                    counto[x]--;
+                    countO[x]--;
                 }
             }
         }
     }
 
     /** */
-    private Reader waveReader = (address, dataBus) -> (cwave[address & 0x3f] | (dataBus & 0xc0));
+    private final Reader waveReader = (address, dataBus) -> (cWave[address & 0x3f] | (dataBus & 0xc0));
 
     /** */
-    private Writer waveWriter = (address, value) -> {
+    private final Writer waveWriter = (address, value) -> {
         // printf("$%04x:$%02x, %d\n",A,V,SPSG[0x9]&0x80);
-        if ((spsg[0x9] & 0x80) != 0) {
-            cwave[address & 0x3f] = (byte) (value & 0x3F);
+        if ((sPsg[0x9] & 0x80) != 0) {
+            cWave[address & 0x3f] = (byte) (value & 0x3F);
         }
     };
 
     /** */
-    private void clockRised() {
-        if (clockcount == 0) {
-            b19shiftreg60 = (spsg[0x2] | ((spsg[0x3] & 0xF) << 8));
-            b17latch76 = (spsg[0x6] | ((spsg[0x07] & 0xF) << 8)) + b17latch76;
+    private void clockRisen() {
+        if (clockCount == 0) {
+            b19ShiftReg60 = (sPsg[0x2] | ((sPsg[0x3] & 0xF) << 8));
+            b17latch76 = (sPsg[0x6] | ((sPsg[0x07] & 0xF) << 8)) + b17latch76;
 
-            if ((spsg[0x7] & 0x80) == 0) {
-                int t = mwave[(b17latch76 >> 13) & 0x1f] & 7;
+            if ((sPsg[0x7] & 0x80) == 0) {
+                int t = mWave[(b17latch76 >> 13) & 0x1f] & 7;
                 int t2 = amplitude[1];
 
                 if (t2 > 0x20)
@@ -197,37 +195,37 @@ public class fds extends ExpSound {
                 // t=0x80+((t&3))*t2; //(0x80+(t&3))*(amplitude[1]); //t;
                 // }
                 // //amplitude[1]*3; //t;
-                // //(amplitude[1])*(fdso.mwave[(b17latch76>>13)&0x1F]&7);
+                // //(amplitude[1])*(fdso.mWave[(b17latch76>>13)&0x1F]&7);
 
-                b8shiftreg88 = (byte) t; // (t+0x80)*(amplitude[1]);
+                b8ShiftReg88 = (byte) t; // (t+0x80)*(amplitude[1]);
 
                 // t=0;
                 // t=(t-4)*(amplitude[1]);
                 // FCEU_DispMessage("%d",amplitude[1]);
-                // b8shiftreg88=((fdso.mwave[(b17latch76>>11)&0x1F]&7))|(amplitude[1]<<3);
+                // b8ShiftReg88=((fdso.mWave[(b17latch76>>11)&0x1F]&7))|(amplitude[1]<<3);
             } else {
-                b8shiftreg88 = (byte) 0x80;
+                b8ShiftReg88 = (byte) 0x80;
             }
-            // b8shiftreg88=0x80;
+            // b8ShiftReg88=0x80;
         } else {
-            b19shiftreg60 <<= 1;
-            b8shiftreg88 >>= 1;
+            b19ShiftReg60 <<= 1;
+            b8ShiftReg88 >>= 1;
         }
-        // b24adder66=(b24latch68+b19shiftreg60)&0x3FFFFFF;
-        b24adder66 = (b24latch68 + b19shiftreg60) & 0x1FFFFFF;
+        // b24adder66=(b24latch68+b19ShiftReg60)&0x3FFFFFF;
+        b24adder66 = (b24latch68 + b19ShiftReg60) & 0x1FFFFFF;
     }
 
     /** */
     private void clockFallen() {
         // if(!(SPSG[0x7]&0x80))
         {
-            if ((b8shiftreg88 & 1) != 0) // || clockcount==7)
+            if ((b8ShiftReg88 & 1) != 0) // || clockCount==7)
             {
                 b24latch68 = b24adder66;
                 redoCO();
             }
         }
-        clockcount = (clockcount + 1) & 7;
+        clockCount = (clockCount + 1) & 7;
     }
 
     /** */
@@ -235,61 +233,61 @@ public class fds extends ExpSound {
         count += cycles;
         if (count >= ((long) 1 << 40)) {
             count -= (long) 1 << 40;
-            clockRised();
+            clockRisen();
             clockFallen();
-            envcount--;
-            if (envcount <= 0) {
-                envcount += spsg[0xA] * 3;
+            envCount--;
+            if (envCount <= 0) {
+                envCount += sPsg[0xA] * 3;
                 doEnv();
             }
         }
         if (count >= 32768) {
             count -= (long) 1 << 40;
-            clockRised();
+            clockRisen();
             clockFallen();
-            envcount--;
-            if (envcount <= 0) {
-                envcount += spsg[0xA] * 3;
+            envCount--;
+            if (envCount <= 0) {
+                envCount += sPsg[0xA] * 3;
                 doEnv();
             }
         }
 
-        return curout;
+        return curOut;
     }
 
-    /** */
+    @Override
     public void fillHi() {
         int x;
 
-        if ((spsg[0x9] & 0x80) == 0 && (disabled & 0x1) == 0) {
-            for (x = fbc; x < gapu.cpu.timestamp; x++) {
+        if ((sPsg[0x9] & 0x80) == 0 && (disabled & 0x1) == 0) {
+            for (x = fbc; x < gApu.cpu.timestamp; x++) {
                 int t = doSound();
                 t += t >> 1;
-                gapu.waveHi[x] += t;
+                gApu.waveHi[x] += t;
             }
         }
-        fbc = gapu.cpu.timestamp;
+        fbc = gApu.cpu.timestamp;
     }
 
-    /** */
+    @Override
     public void syncHi(int ts) {
         fbc = ts;
     }
 
-    /** */
+    @Override
     public void kill() {
     }
 
-    /** */
+    @Override
     public void disable(int mask) {
         disabled = mask;
     }
 
     /** */
-    public fds(NesApu apu) {
+    public Fds(NesApu apu) {
 
         this.cycles = (long) 1 << 39;
-        this.gapu = apu;
+        this.gApu = apu;
 
         apu.cpu.setReader(0x4040, 0x407f, waveReader, this);
         apu.cpu.setWriter(0x4040, 0x407f, waveWriter, this);

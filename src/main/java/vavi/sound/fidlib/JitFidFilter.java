@@ -82,21 +82,21 @@ class JitFidFilter extends FidFilter {
     }
 
     /** Magic: 0x64966325 */
-    private int magic;
+    private final int magic;
     /** Length of working buffer required in doubles */
-    private int n_buf;
+    private final int n_buf;
     /** Coefficient list */
-    private double[] coef;
+    private final double[] coef;
 
     /** Routine used */
     private Routine rout;
 
     /** Number of 4-byte chunks to copy from &buf[1] to &buf[0] */
-    private int mov_cnt;
+    private final int mov_cnt;
     /** Buffer itself */
     private double[] buf;
 
-    private int HASH(byte[] p, int len) {
+    private static int HASH(byte[] p, int len) {
         return do_hash(p, len, 0);
     }
 
@@ -311,9 +311,9 @@ class JitFidFilter extends FidFilter {
     //
 
     // Buffer address
-    private byte[] r_buf;
+    private final byte[] r_buf;
     // Curent end of buffer
-    private int r_end;
+    private final int r_end;
     // Current write-position
     private int r_cp;
     // Current loop-back label, or 0
@@ -885,7 +885,7 @@ class JitFidFilter extends FidFilter {
      *         return value. Every 1-bit and 2-bit delta achieves avalanche.
      *         About 6*len+35 instructions.
      */
-    private int do_hash(byte[] k, int length, int initval) {
+    private static int do_hash(byte[] k, int length, int initval) {
         int a, b, c, len;
 
         // Set up the internal state
@@ -938,6 +938,7 @@ class JitFidFilter extends FidFilter {
         return c;
     }
 
+    @Override
     public double filter_step(double val) {
         // rout.code;
         return 0;

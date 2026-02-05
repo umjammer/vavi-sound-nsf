@@ -84,7 +84,7 @@ class Opll {
     private static final int TL_BITS = 6;
     private static final int TL_MUTE = (1 << TL_BITS);
 
-    /* Dynamic range of sustine level */
+    /* Dynamic range of sustain level */
     private static final double SL_STEP = 3.0;
     private static final int SL_BITS = 4;
     private static final int SL_MUTE = (1 << SL_BITS);
@@ -111,30 +111,30 @@ class Opll {
     /** slot */
     private class Slot {
         /** */
-        Patch patch = new Patch();
+        final Patch patch = new Patch();
         /** 0 : modulator 1 : carrier */
-        int type;
+        final int type;
         /** OUTPUT */
         int feedback;
         /* Output value of slot */
         /** for Phase Generator (PG) */
-        int[] output = new int[2];
-        /** Wavetable */
-        short[] sintbl;
+        final int[] output = new int[2];
+        /** Wave-table */
+        short[] sinTable;
         /** Phase */
         int phase;
         /** Phase increment amount */
-        int dphase;
+        int dPhase;
         /** output for Envelope Generator (EG) */
-        int pgout;
+        int pgOut;
         /** F-Number */
         int fnum;
         /** Block */
         int block;
         /** Current volume */
         int volume;
-        /** Sustine 1 = ON, 0 = OFF */
-        int sustine;
+        /** Sustain 1 = ON, 0 = OFF */
+        int sustain;
         /** Total Level + Key scale level */
         int tll;
         /** Key scale offset (Rks) */
@@ -144,34 +144,34 @@ class Opll {
         /** Phase */
         int eg_phase;
         /** Phase increment amount */
-        int eg_dphase;
+        int eg_dPhase;
         /** output */
-        int egout;
+        int egOut;
         /** */
         Slot(int type) {
             this.type = type;
-            this.sintbl = waveForm[0];
+            this.sinTable = waveForm[0];
             this.phase = 0;
-            this.dphase = 0;
+            this.dPhase = 0;
             this.output[0] = 0;
             this.output[1] = 0;
             this.feedback = 0;
             this.eg_mode = EnvelopeMode.SETTLE;
             this.eg_phase = EG_DP_WIDTH;
-            this.eg_dphase = 0;
+            this.eg_dPhase = 0;
             this.rks = 0;
             this.tll = 0;
-            this.sustine = 0;
+            this.sustain = 0;
             this.fnum = 0;
             this.block = 0;
             this.volume = 0;
-            this.pgout = 0;
-            this.egout = 0;
+            this.pgOut = 0;
+            this.egOut = 0;
         }
 
         /** */
         final void updatePG() {
-            this.dphase = dphaseTable[this.fnum][this.block][this.patch.ml];
+            this.dPhase = dphaseTable[this.fnum][this.block][this.patch.ml];
         }
 
         /** */
@@ -186,12 +186,12 @@ class Opll {
 
         /** */
         final void updateWF() {
-            this.sintbl = waveForm[this.patch.wf];
+            this.sinTable = waveForm[this.patch.wf];
         }
 
         /** */
         final void updateEG() {
-            this.eg_dphase = calcEgDPhase();
+            this.eg_dPhase = calcEgDPhase();
         }
 
         /** */
@@ -239,11 +239,11 @@ class Opll {
             case SUSHOLD:
                 return 0;
 
-            case SUSTINE:
+            case SUSTAIN:
                 return dPhaseDRTable[this.patch.rr][this.rks];
 
             case RELEASE:
-                if (this.sustine != 0)
+                if (this.sustain != 0)
                     return dPhaseDRTable[5][this.rks];
                 else if (this.patch.eg != 0)
                     return dPhaseDRTable[this.patch.rr][this.rks];
@@ -267,7 +267,7 @@ class Opll {
 
             case ATTACK:
                 egout = arAdjustTable[highBits(this.eg_phase, EG_DP_BITS - EG_BITS)];
-                this.eg_phase += this.eg_dphase;
+                this.eg_phase += this.eg_dPhase;
                 if ((EG_DP_WIDTH & this.eg_phase) != 0 || (this.patch.ar == 15)) {
                     egout = 0;
                     this.eg_phase = 0;
@@ -278,7 +278,7 @@ class Opll {
 
             case DECAY:
                 egout = highBits(this.eg_phase, EG_DP_BITS - EG_BITS);
-                this.eg_phase += this.eg_dphase;
+                this.eg_phase += this.eg_dPhase;
                 if (this.eg_phase >= SL[this.patch.sl]) {
                     if (this.patch.eg != 0) {
                         this.eg_phase = SL[this.patch.sl];
@@ -286,7 +286,7 @@ class Opll {
                         this.updateEG();
                     } else {
                         this.eg_phase = SL[this.patch.sl];
-                        this.eg_mode = EnvelopeMode.SUSTINE;
+                        this.eg_mode = EnvelopeMode.SUSTAIN;
                         this.updateEG();
                     }
                 }
@@ -295,15 +295,15 @@ class Opll {
             case SUSHOLD:
                 egout = highBits(this.eg_phase, EG_DP_BITS - EG_BITS);
                 if (this.patch.eg == 0) {
-                    this.eg_mode = EnvelopeMode.SUSTINE;
+                    this.eg_mode = EnvelopeMode.SUSTAIN;
                     this.updateEG();
                 }
                 break;
 
-            case SUSTINE:
+            case SUSTAIN:
             case RELEASE:
                 egout = highBits(this.eg_phase, EG_DP_BITS - EG_BITS);
-                this.eg_phase += this.eg_dphase;
+                this.eg_phase += this.eg_dPhase;
                 if (egout >= (1 << EG_BITS)) {
                     this.eg_mode = EnvelopeMode.FINISH;
                     egout = (1 << EG_BITS) - 1;
@@ -329,17 +329,17 @@ class Opll {
                 egout = DB_MUTE - 1;
             }
 
-            this.egout = egout;
+            this.egOut = egout;
         }
 
         /** carrior */
         final int calcSlotCar(int fm) {
             this.output[1] = this.output[0];
 
-            if (this.egout >= (DB_MUTE - 1)) {
+            if (this.egOut >= (DB_MUTE - 1)) {
                 this.output[0] = 0;
             } else {
-                this.output[0] = db2LinTable[this.sintbl[(this.pgout + wave2_8pi(fm)) & (PG_WIDTH - 1)] + this.egout];
+                this.output[0] = db2LinTable[this.sinTable[(this.pgOut + wave2_8pi(fm)) & (PG_WIDTH - 1)] + this.egOut];
             }
 
             return (this.output[1] + this.output[0]) >> 1;
@@ -351,13 +351,13 @@ class Opll {
 
             this.output[1] = this.output[0];
 
-            if (this.egout >= (DB_MUTE - 1)) {
+            if (this.egOut >= (DB_MUTE - 1)) {
                 this.output[0] = 0;
             } else if (this.patch.fb != 0) {
                 fm = wave2_4pi(this.feedback) >> (7 - this.patch.fb);
-                this.output[0] = db2LinTable[this.sintbl[(this.pgout + fm) & (PG_WIDTH - 1)] + this.egout];
+                this.output[0] = db2LinTable[this.sinTable[(this.pgOut + fm) & (PG_WIDTH - 1)] + this.egOut];
             } else {
-                this.output[0] = db2LinTable[this.sintbl[this.pgout] + this.egout];
+                this.output[0] = db2LinTable[this.sinTable[this.pgOut] + this.egOut];
             }
 
             this.feedback = (this.output[1] + this.output[0]) >> 1;
@@ -369,13 +369,13 @@ class Opll {
         /* PG */
         final void calcPhase(int lfo) {
             if (this.patch.pm != 0)
-                this.phase += (this.dphase * lfo) >> PM_AMP_BITS;
+                this.phase += (this.dPhase * lfo) >> PM_AMP_BITS;
             else
-                this.phase += this.dphase;
+                this.phase += this.dPhase;
 
             this.phase &= (DP_WIDTH - 1);
 
-            this.pgout = highBits(this.phase, DP_BASE_BITS);
+            this.pgOut = highBits(this.phase, DP_BASE_BITS);
         }
 
         /** */
@@ -399,12 +399,12 @@ class Opll {
     private int prev, next;
 
     /** Register */
-    private byte[] lowFreq = new byte[6];
-    private byte[] hiFreq = new byte[6];
-    private byte[] instVol = new byte[6];
-    private int[] custInst = new int[8];
+    private final byte[] lowFreq = new byte[6];
+    private final byte[] hiFreq = new byte[6];
+    private final byte[] instVol = new byte[6];
+    private final int[] custInst = new int[8];
 
-    private int[] slotOnFlag = new int[6 * 2];
+    private final int[] slotOnFlag = new int[6 * 2];
 
     /** Pitch Modulator */
     private int pmPhase;
@@ -416,47 +416,47 @@ class Opll {
     private int quality;
 
     /** Channel Data */
-    private int[] patchNumber = new int[6];
-    private int[] keyStatus = new int[6];
+    private final int[] patchNumber = new int[6];
+    private final int[] keyStatus = new int[6];
 
     /** Slot */
-    private Slot[] slot = new Slot[6 * 2];
+    private final Slot[] slot = new Slot[6 * 2];
     private int mask;
 
     /** Input clock */
     private int clk;
 
     /** WaveTable for each envelope amp */
-    private short[] fullSinTable = new short[PG_WIDTH];
-    private short[] halfSinTable = new short[PG_WIDTH];
-    private short[][] waveForm = new short[2][];
+    private final short[] fullSinTable = new short[PG_WIDTH];
+    private final short[] halfSinTable = new short[PG_WIDTH];
+    private final short[][] waveForm = new short[2][];
 
     /** LFO Table */
-    private int[] pmTable = new int[PM_PG_WIDTH];
-    private int[] amTable = new int[AM_PG_WIDTH];
+    private final int[] pmTable = new int[PM_PG_WIDTH];
+    private final int[] amTable = new int[AM_PG_WIDTH];
 
     /** Phase delta for LFO */
     private int pmDPhase;
     private int amDPhase;
 
     /** dB to Liner table */
-    private short[] db2LinTable = new short[(DB_MUTE + DB_MUTE) * 2];
+    private final short[] db2LinTable = new short[(DB_MUTE + DB_MUTE) * 2];
 
     /** Liner to Log curve conversion table (for Attack rate). */
-    private short[] arAdjustTable = new short[1 << EG_BITS];
+    private final short[] arAdjustTable = new short[1 << EG_BITS];
 
     /** Phase incr table for Attack */
-    private int[][] dPhaseARTable = new int[16][16];
+    private final int[][] dPhaseARTable = new int[16][16];
 
     /** Phase incr table for Decay and Release */
-    private int[][] dPhaseDRTable = new int[16][16];
+    private final int[][] dPhaseDRTable = new int[16][16];
 
     /** KSL + TL Table */
-    private int[][][][] tllTable = new int[16][8][1 << TL_BITS][4];
-    private int[][][] rksTable = new int[2][8][2];
+    private final int[][][][] tllTable = new int[16][8][1 << TL_BITS][4];
+    private final int[][][] rksTable = new int[2][8][2];
 
     /** Phase incr table for PG */
-    private int[][][] dphaseTable = new int[512][8][16];
+    private final int[][][] dphaseTable = new int[512][8][16];
 
     /**
      * VRC7 instruments
@@ -561,7 +561,7 @@ class Opll {
 
     /** Definition of envelope mode */
     private enum EnvelopeMode {
-        SETTLE, ATTACK, DECAY, SUSHOLD, SUSTINE, RELEASE, FINISH
+        SETTLE, ATTACK, DECAY, SUSHOLD, SUSTAIN, RELEASE, FINISH
     }
 
     /*
@@ -691,7 +691,7 @@ class Opll {
         }
     }
 
-// #ifdef USE_SPEC_ENV_SPEED
+//#ifdef USE_SPEC_ENV_SPEED
     private static final double[][] attackTime = {
         { 0, 0, 0, 0 },
         { 1730.15, 1400.60, 1153.43, 988.66 },
@@ -729,11 +729,11 @@ class Opll {
         { 2.55, 2.05, 1.71, 1.47 },
         { 1.27, 1.27, 1.27, 1.27 }
     };
-// #endif
+//#endif
 
     /* Rate Table for Attack */
     private void makeDPhaseARTable() {
-// #ifdef USE_SPEC_ENV_SPEED
+//#ifdef USE_SPEC_ENV_SPEED
         int[][] attackTable = new int[16][4];
 
         for (int rm = 0; rm < 16; rm++) {
@@ -747,7 +747,7 @@ class Opll {
                 }
             }
         }
-// #endif
+//#endif
 
         for (int ar = 0; ar < 16; ar++) {
             for (int rks = 0; rks < 16; rks++) {
@@ -760,24 +760,24 @@ class Opll {
                     dPhaseARTable[ar][rks] = 0;
                     break;
                 case 15:
-                    dPhaseARTable[ar][rks] = 0;/* EG_DP_WIDTH; */
+                    dPhaseARTable[ar][rks] = 0; // EG_DP_WIDTH
                     break;
                 default:
-// #ifdef USE_SPEC_ENV_SPEED
+//#ifdef USE_SPEC_ENV_SPEED
                     dPhaseARTable[ar][rks] = (attackTable[rm][rl]);
-// #else
-//                  dphaseARTable[AR][Rks] = ((3 * (RL + 4) << (RM + 1)));
-// #endif
+//#else
+//                    dPhaseARTable[AR][Rks] = ((3 * (RL + 4) << (RM + 1)));
+//#endif
                     break;
                 }
             }
         }
     }
 
-    /* Rate Table for Decay and Release */
+    /** Rate Table for Decay and Release */
     private void makeDPhaseDRTable() {
 
-// #ifdef USE_SPEC_ENV_SPEED
+//#ifdef USE_SPEC_ENV_SPEED
         int[][] decayTable = new int[16][4];
 
         for (int rm = 0; rm < 16; rm++) {
@@ -789,7 +789,7 @@ class Opll {
                 }
             }
         }
-// #endif
+//#endif
 
         for (int dr = 0; dr < 16; dr++) {
             for (int rks = 0; rks < 16; rks++) {
@@ -803,11 +803,11 @@ class Opll {
                     dPhaseDRTable[dr][rks] = 0;
                     break;
                 default:
-// #ifdef USE_SPEC_ENV_SPEED
+//#ifdef USE_SPEC_ENV_SPEED
                     dPhaseDRTable[dr][rks] = (decayTable[rm][rl]);
-// #else
-//                  dphaseDRTable[DR][Rks] = ((RL + 4) << (RM - 1));
-// #endif
+//#else
+//                    dPhaseDRTable[DR][Rks] = ((RL + 4) << (RM - 1));
+//#endif
                     break;
                 }
             }
@@ -853,11 +853,11 @@ class Opll {
         keyStatus[i] = 0;
     }
 
-    /** Set sustine parameter */
+    /** Set sustain parameter */
     private void setSustine(int c, int sustine) {
-        car(c).sustine = sustine;
+        car(c).sustain = sustine;
         if (mod(c).type != 0) {
-            mod(c).sustine = sustine;
+            mod(c).sustain = sustine;
         }
     }
 
@@ -973,35 +973,35 @@ class Opll {
     /** Convert Amp(0 to EG_HEIGHT) to Phase(0 to 2PI). */
     private static int wave2_2pi(int e) {
         if ((SLOT_AMP_BITS - PG_BITS) > 0) {
-            return ((e) >> (SLOT_AMP_BITS - PG_BITS));
+            return e >> (SLOT_AMP_BITS - PG_BITS);
         } else {
-            return ((e) << (PG_BITS - SLOT_AMP_BITS));
+            return e << (PG_BITS - SLOT_AMP_BITS);
         }
     }
 
     /** Convert Amp(0 to EG_HEIGHT) to Phase(0 to 4PI). */
     private static int wave2_4pi(int e) {
         if ((SLOT_AMP_BITS - PG_BITS - 1) == 0) {
-            return (e);
+            return e;
         } else if ((SLOT_AMP_BITS - PG_BITS - 1) > 0) {
-            return ((e) >> (SLOT_AMP_BITS - PG_BITS - 1));
+            return e >> (SLOT_AMP_BITS - PG_BITS - 1);
         } else {
-            return ((e) << (1 + PG_BITS - SLOT_AMP_BITS));
+            return e << (1 + PG_BITS - SLOT_AMP_BITS);
         }
     }
 
     /** Convert Amp(0 to EG_HEIGHT) to Phase(0 to 8PI). */
     private static int wave2_8pi(int e) {
         if ((SLOT_AMP_BITS - PG_BITS - 2) == 0) {
-            return (e);
+            return e;
         } else if ((SLOT_AMP_BITS - PG_BITS - 2) > 0) {
-            return ((e) >> (SLOT_AMP_BITS - PG_BITS - 2));
+            return e >> (SLOT_AMP_BITS - PG_BITS - 2);
         } else {
-            return ((e) << (2 + PG_BITS - SLOT_AMP_BITS));
+            return e << (2 + PG_BITS - SLOT_AMP_BITS);
         }
     }
 
-    /* Update AM, PM unit */
+    /** Update AM, PM unit */
     private void updateAmPm() {
         pmPhase = (pmPhase + pmDPhase) & (PM_DP_WIDTH - 1);
         amPhase = (amPhase + amDPhase) & (AM_DP_WIDTH - 1);
@@ -1068,19 +1068,18 @@ class Opll {
 
     /** */
     private void setInstrument(int i, int inst) {
-        int[] src;
-        Patch modp, carp;
 
         this.patchNumber[i] = inst;
 
+        int[] src;
         if (inst != 0) {
             src = defaultInst[inst - 1];
         } else {
             src = custInst;
         }
 
-        modp = mod(i).patch;
-        carp = car(i).patch;
+        Patch modp = mod(i).patch;
+        Patch carp = car(i).patch;
 
         modp.am = (src[0] >> 7) & 1;
         modp.pm = (src[0] >> 6) & 1;

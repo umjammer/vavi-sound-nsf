@@ -5,18 +5,21 @@
 package vavi.sound.nsf.nsf;
 
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
 
 import org.apache.commons.lang3.Validate;
 
-import vavi.util.Debug;
-
 import lando.nsf.apu.Divider;
+
+import static java.lang.System.getLogger;
 
 
 public final class NSFRenderer {
+
+    private static final Logger logger = getLogger(NSFRenderer.class.getName());
 
     //NES system clock rate
     public static final int SYSTEM_CYCLES_PER_SEC = 21_477_270;
@@ -58,8 +61,8 @@ public final class NSFRenderer {
         this.nes = Objects.requireNonNull(nes);
 
         this.maxSystemCycles = (long) SYSTEM_CYCLES_PER_SEC * maxPlaySecs;
-        this.fadeOutStartCycle = this.maxSystemCycles - SYSTEM_CYCLES_PER_SEC; //1 second fade out
-        this.disableFadeOut = this.fadeOutStartCycle <= SYSTEM_CYCLES_PER_SEC; //do not fade out if max play is <= 1 second.
+        this.fadeOutStartCycle = this.maxSystemCycles - SYSTEM_CYCLES_PER_SEC; // 1 second fade out
+        this.disableFadeOut = this.fadeOutStartCycle <= SYSTEM_CYCLES_PER_SEC; // do not fade out if max play is <= 1 second.
         this.silenceDetector = new SilenceDetector(SYSTEM_CYCLES_PER_SEC * maxSilenceSecs);
         this.playPeriodFinder = createPlayPeriodFinder();
     }
@@ -112,13 +115,13 @@ public final class NSFRenderer {
         while (systemCycle < maxSystemCycles) {
             systemCycle += step(samplers);
 //if (systemCycle % 10000000 == 0) {
-//System.err.print(".");
+//logger.log(Level.DEBUG, ".");
 //}
             if (silenceDetector.wasSilenceDetected()) {
                 break;
             }
         }
-//System.err.println();
+//logger.log(Level.DEBUG, );
     }
 
     /** single sampler */
@@ -136,12 +139,12 @@ public final class NSFRenderer {
     private PeriodTimestampFinder createPlayPeriodFinder() {
 
         long playPeriodNanos = nes.nsf.getPlayPeriodNanos();
-Debug.println(Level.FINE, "playPeriodNanos: " + playPeriodNanos);
+logger.log(Level.DEBUG, "playPeriodNanos: " + playPeriodNanos);
 
         long playPeriodSystemCycles = Math.round(
                 playPeriodNanos/(1e9/SYSTEM_CYCLES_PER_SEC));
 
-Debug.println(Level.FINE, "playPeriodSystemCycles: " + playPeriodSystemCycles);
+logger.log(Level.DEBUG, "playPeriodSystemCycles: " + playPeriodSystemCycles);
 
         return new PeriodTimestampFinder(0, playPeriodSystemCycles);
     }
@@ -153,9 +156,9 @@ Debug.println(Level.FINE, "playPeriodSystemCycles: " + playPeriodSystemCycles);
         if (systemCycle >= nextCycleToPlay) {
             nextCycleToPlay = playPeriodFinder.findNextPeriod(systemCycle + 1);
 
-            //System.out.println("___________________________________________________________________________________");
-            //System.out.printf("t:%.3f%n", (double)systemCycle/SYSTEM_CYCLES_PER_SEC);
-            //System.out.println();
+//logger.log(Level.DEBUG, "___________________________________________________________________________________");
+//logger.log(Level.DEBUG, "t:%.3f".formatted((double) systemCycle / SYSTEM_CYCLES_PER_SEC));
+//logger.log(Level.DEBUG, );
 
             nes.execPlay();
 

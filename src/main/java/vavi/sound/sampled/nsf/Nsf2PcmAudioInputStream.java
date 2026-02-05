@@ -11,12 +11,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.logging.Level;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -26,7 +27,8 @@ import vavi.io.OutputEngineInputStream;
 import vavi.sound.nsf.nsf.NES;
 import vavi.sound.nsf.nsf.NSFRenderer;
 import vavi.sound.nsf.nsf.NSFRenderer.Sink;
-import vavi.util.Debug;
+
+import static java.lang.System.getLogger;
 
 
 /**
@@ -44,6 +46,8 @@ import vavi.util.Debug;
  * @version 0.00 2020/10/27 umjammer initial version <br>
  */
 public class Nsf2PcmAudioInputStream extends AudioInputStream {
+
+    private static final Logger logger = getLogger(Nsf2PcmAudioInputStream.class.getName());
 
     /** use format's properties */
     public Nsf2PcmAudioInputStream(InputStream stream, AudioFormat format, long length) throws IOException {
@@ -112,7 +116,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
 
         private volatile boolean finished = false;
 
-        /** */
+        @Override
         public void initialize(OutputStream out) throws IOException {
             if (this.out != null) {
                 throw new IOException("Already initialized");
@@ -120,7 +124,7 @@ public class Nsf2PcmAudioInputStream extends AudioInputStream {
                 this.out = new BufferedOutputStream(out);
             }
 
-Debug.println(Level.FINE, "props from target AudioFormat: " + props);
+logger.log(Level.DEBUG, "props from target AudioFormat: " + props);
             if (props.containsKey("maxPlaySecs")) {
                 maxPlaySecs = (int) props.get("maxPlaySecs");
             }
@@ -154,14 +158,14 @@ Debug.println(Level.FINE, "props from target AudioFormat: " + props);
                             try {
                                 buffer.put(b);
                             } catch (InterruptedException e) {
-                                Debug.printStackTrace(e); // TODO consider more
+                                logger.log(Level.TRACE, e.toString(), e); // TODO consider more
                             }
                         }
 
                         @Override
                         public void finish() {
                             blockingDequeThread.interrupt();
-Debug.println(Level.FINE, "sink finish");
+logger.log(Level.DEBUG, "sink finish");
                             finished = true;
                         }
                     });
@@ -175,7 +179,7 @@ Debug.println(Level.FINE, "sink finish");
 
         static final int BUFFER_SIZE = 16;
 
-        /** */
+        @Override
         public void execute() throws IOException {
             try {
                 int c = 0;
@@ -185,15 +189,15 @@ Debug.println(Level.FINE, "sink finish");
                 if (finished) {
                     out.close();
                 }
-//Debug.println(Level.FINER, "write: " + i + ", " + buffer.size());
+//logger.log(Level.TRACE, "write: " + i + ", " + buffer.size());
             } catch (InterruptedException e) {
-Debug.println(Level.FINE, "BlockingDeque#take() interrupted");
+logger.log(Level.DEBUG, "BlockingDeque#take() interrupted");
             }
         }
 
-        /** */
+        @Override
         public void finish() throws IOException {
-Debug.println(Level.FINE, "engine finish");
+logger.log(Level.DEBUG, "engine finish");
             executor.shutdown();
         }
     }

@@ -5,29 +5,30 @@
  */
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioFormat.Encoding;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.SourceDataLine;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import vavi.sound.sampled.nsf.Nsf2PcmAudioInputStream;
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static vavi.sound.SoundUtil.volume;
 
@@ -48,7 +49,10 @@ public class TestCase {
     }
 
     @Property(name = "nsf")
-    String inFile = "src/test/resources/smb1.nsf";
+    String inFile = "src/test/resources/test.nsf";
+
+    @Property
+    int track = 5;
 
     @Property(name = "vavi.test.volume")
     double volume = 0.2;
@@ -70,7 +74,7 @@ for (AudioFileFormat.Type type : AudioSystem.getAudioFileTypes()) {
     @DisplayName("directly")
     void test0() throws Exception {
         Map<String, Object> props = new HashMap<>();
-        props.put("track", 5);
+        props.put("track", track);
         props.put("maxPlaySecs", time);
 
         AudioFormat targetAudioFormat = new AudioFormat(
@@ -83,14 +87,15 @@ for (AudioFileFormat.Type type : AudioSystem.getAudioFileTypes()) {
                 false,
                 props);
 
+Debug.println(inFile);
         AudioInputStream ais = new Nsf2PcmAudioInputStream(Files.newInputStream(Paths.get(inFile)), targetAudioFormat, -1);
 Debug.println(targetAudioFormat);
 
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, targetAudioFormat, AudioSystem.NOT_SPECIFIED);
         SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
-        Debug.println(line.getClass().getName());
+Debug.println(line.getClass().getName());
         line.addLineListener(event -> Debug.println(event.getType()));
-        Debug.println("buffer size: " + line.getBufferSize());
+Debug.println("buffer size: " + line.getBufferSize());
 
         line.open(targetAudioFormat);
         volume(line, volume);
@@ -115,7 +120,7 @@ Debug.println(targetAudioFormat);
     @DisplayName("use spi")
     void test1() throws Exception {
         Map<String, Object> props = new HashMap<>();
-        props.put("track", 1);
+        props.put("track", track);
         props.put("maxPlaySecs", time);
 
         AudioFormat targetAudioFormat = new AudioFormat(
@@ -128,6 +133,7 @@ Debug.println(targetAudioFormat);
                 false,
                 props);
 
+Debug.println(inFile);
         AudioInputStream sourceAis = AudioSystem.getAudioInputStream(new BufferedInputStream(Files.newInputStream(Path.of(inFile))));
         AudioFormat sourceAudioFormat = sourceAis.getFormat();
 Debug.println(sourceAudioFormat);
@@ -157,5 +163,48 @@ Debug.println("buffer size: " + line.getBufferSize());
         line.close();
 
         ais.close();
+    }
+
+    @Test
+    @Disabled
+    @DisplayName("save to wav")
+    void test2() throws Exception {
+        Map<String, Object> props = new HashMap<>();
+        props.put("track", track);
+        props.put("maxPlaySecs", time);
+
+        AudioFormat targetAudioFormat = new AudioFormat(
+                Encoding.PCM_SIGNED,
+                44100,
+                16,
+                1,
+                2,
+                44100,
+                false,
+                props);
+
+Debug.println(inFile);
+        AudioInputStream sourceAis = AudioSystem.getAudioInputStream(new BufferedInputStream(Files.newInputStream(Path.of(inFile))));
+        AudioInputStream ais = AudioSystem.getAudioInputStream(targetAudioFormat, sourceAis);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        int r;
+        byte[] buf = new byte[8192];
+        while (true) {
+            r = ais.read(buf, 0, buf.length);
+            if (r < 0) {
+                break;
+            }
+            baos.write(buf, 0, r);
+        }
+        baos.close();
+        ais.close();
+
+        Path outPath = Path.of("tmp", "out.wav");
+
+        byte[] bytes = baos.toByteArray();
+        AudioInputStream outputAis = new AudioInputStream(new ByteArrayInputStream(bytes), targetAudioFormat, bytes.length / targetAudioFormat.getFrameSize());
+        AudioSystem.write(outputAis, AudioFileFormat.Type.WAVE, outPath.toFile());
     }
 }

@@ -1,9 +1,10 @@
 package vavi.sound.nsf.festalon;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
-import java.util.logging.Level;
 
-import vavi.util.Debug;
+import static java.lang.System.getLogger;
 
 
 /**
@@ -13,12 +14,15 @@ import vavi.util.Debug;
  * @version 0.00 060501 nsano initial version <br>
  */
 class NesCart {
+
+    private static final Logger logger = getLogger(NesCart.class.getName());
+
     /** */
     private static class Page {
         /** */
-        byte[] page;
+        final byte[] page;
         /** */
-        int pagePointer;
+        final int pagePointer;
         /** */
         byte[] prgPointer;
         /** */
@@ -41,7 +45,7 @@ class NesCart {
         Page(byte[] page, int pagePointer) {
             this.page = page;
             this.pagePointer = pagePointer;
-//Debug.printf(Level.FINER, "Page: %04X, %04X\n", page.length, pagePointer);
+//logger.log(Level.TRACE, "Page: %04X, %04X".formatted(page.length, pagePointer));
         }
         public String toString() {
             return Arrays.toString(page) + ", " + pagePointer + ", " + prgSize + ", " + prgIsRAM;
@@ -55,34 +59,34 @@ class NesCart {
     }
 
     /** */
-    private Page[] pages = new Page[32];
+    private final Page[] pages = new Page[32];
 
     // 16 are (sort of) reserved for UNIF/iNES and 16 to map other stuff.
 
     /** */
     private void setPagePtr(int s, int address, byte[] p, int pP, boolean ram) {
         int addressBase = address >> 11;
-//Debug.printf(Level.FINER, "setPagePtr: %04X, %04X, %s\n", address, addressBase, p);
+//logger.log(Level.TRACE, "setPagePtr: %04X, %04X, %s".formatted(address, addressBase, p));
 //new Exception("*** DUMMY ***").printStackTrace();
 
         if (p != null) {
             for (int i = 0; i < (s >> 1); i++) {
-//Debug.printf(Level.FINER, "0: %04X, %04X\n", pP, address);
+//logger.log(Level.TRACE, "0: %04X, %04X\n".formatted(pP, address));
                 pages[addressBase + i] = new Page(p, pP - address);
                 pages[addressBase + i].prgIsRAM = ram;
-Debug.printf(Level.FINE, "1: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
+//logger.log(Level.DEBUG, "1: page: %d, %04X, %04X".formatted(addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer));
             }
         } else {
             for (int i = 0; i < (s >> 1); i++) {
                 pages[addressBase + i] = new Page(new byte[0x10000], 0);
                 pages[addressBase + i].prgIsRAM = false;
-Debug.printf(Level.FINE, "3: page: %d, %04X, %04X\n", addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer);
+//logger.log(Level.DEBUG, "3: page: %d, %04X, %04X".formatted(addressBase + i, pages[addressBase + i].page.length, pages[addressBase + i].pagePointer));
             }
         }
     }
 
     /** */
-    private byte[] nothing = new byte[8192];
+    private final byte[] nothing = new byte[8192];
 
     /** */
     NesCart() {
@@ -108,24 +112,29 @@ Debug.printf(Level.FINE, "3: page: %d, %04X, %04X\n", addressBase + i, pages[add
     }
 
     /** */
-    Reader cartReader = (address, dataBus) -> {
-//Debug.printf(Level.FINER, "cart.read: %04X, %04X, %04X\n", address >> 11, address, pages[address >> 11].page.length);
-        return pages[address >> 11].read(address);
+    private int readCounter = 0;
+    final Reader cartReader = (address, dataBus) -> {
+        int val = pages[address >> 11].read(address) & 0xff;
+        if (readCounter < 100) {
+             logger.log(Level.TRACE, "ROM Read at %04X: %02x".formatted(address, val));
+             readCounter++;
+        }
+        return val;
     };
 
     /** */
-    Writer cartWriter = (address, value) -> {
+    final Writer cartWriter = (address, value) -> {
         if (pages[address >> 11].prgIsRAM && pages[address >> 11] != null) {
             pages[address >> 11].write(address, (byte) value);
         }
     };
 
     /** */
-    private Reader cartReaderOB = (address, dataBus) -> {
+    private final Reader cartReaderOB = (address, dataBus) -> {
         if (pages[address >> 11] == null) {
-            return (byte) dataBus;
+            return dataBus;
         }
-        return pages[address >> 11].read(address);
+        return pages[address >> 11].read(address) & 0xff;
     };
 
     /** */

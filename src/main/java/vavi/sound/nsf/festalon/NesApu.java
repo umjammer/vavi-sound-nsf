@@ -20,10 +20,17 @@
 package vavi.sound.nsf.festalon;
 
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
+
+import static java.lang.System.getLogger;
 
 
 public class NesApu {
+
+    private static final Logger logger = getLogger(NesApu.class.getName());
+
     private static class UnitEnvironment {
         byte speed;
         /** Fixed volume(1), and loop(2) */
@@ -33,33 +40,34 @@ public class NesApu {
         int reloadDec;
     }
 
-    private int[] wLookup1 = new int[32];
-    private int[] wlookup2 = new int[203];
-    public float[] waveHi = new float[40000]; // __attribute__ ((aligned (16)));
+    private final int[] wLookup1 = new int[32];
+    private final int[] wLookup2 = new int[203];
+    public final int[] waveHi = new int[200000]; // __attribute__ ((aligned (16)));
+    private final float[] waveFloatBuffer = new float[200000];
     float[] waveFinal;
     int waveFinalLen;
     private byte triCount;
     private byte triMode;
     private int triStep;
     /** Wave length counters. */
-    private int[] wlCount = new int[4];
+    private final int[] wlCount = new int[4];
     /** $4017 / xx000000 */
     byte irqFrameMode;
-    private byte[] psg = new byte[0x10];
+    private final byte[] psg = new byte[0x10];
     /** $4011 0xxxxxxx */
     private byte rawDALatch;
     /** Byte written to $4015 */
     private byte enabledChannels;
-    private UnitEnvironment[] unitEnvs = new UnitEnvironment[3];
-    private int[] rectDutyCount = new int[2];
-    private byte[] sweepOn = new byte[2];
-    private int[] curFreq = new int[2];
-    private byte[] sweepCount = new byte[2];
+    private final UnitEnvironment[] unitEnvs = new UnitEnvironment[3];
+    private final int[] rectDutyCount = new int[2];
+    private final byte[] sweepOn = new byte[2];
+    private final int[] curFreq = new int[2];
+    private final byte[] sweepCount = new byte[2];
     private int nReg;
     private byte fCount;
     private int fhCount;
     private int fhInc;
-    private int[] lengthCount = new int[4];
+    private final int[] lengthCount = new int[4];
     private int dmcAcc;
     private int dmcPeriod;
     private byte dmcBitCount;
@@ -70,19 +78,19 @@ public class NesApu {
     private int dmcAddress;
     private int dmcSize;
     private byte dmcShift;
-    private byte sirqStat;
+    private byte sIrqStat;
     private int dmcHaveDMA;
     private byte dmcDMABuf;
     private int dmcHaveSample;
-    private int[] channels = new int[5];
-    private int inbuf;
+    private final int[] channels = new int[5];
+    private int inBuf;
     private int lastPoo;
-    public X6502 cpu;
+    public final X6502 cpu;
     Filter filter;
     private int disabled;
-    private ExpSound[] exp = new ExpSound[16];
+    private final ExpSound[] exp = new ExpSound[16];
     private int expCount;
-    private byte[] realmem;
+    private final byte[] realMem;
 
     // ----
 
@@ -126,7 +134,6 @@ public class NesApu {
 
     /** */
     public int emulateFlush() {
-        int j;
         int end;
         int[] left = { 0 };
 
@@ -141,68 +148,78 @@ public class NesApu {
         doPCM();
 
         {
-            for (j = 0; j < expCount; j++) {
+            for (int j = 0; j < expCount; j++) {
 //              if (exp[x].HiFill) {
                     exp[j].fillHi();
 //              }
             }
 
             if (filter.inputFormat == Filter.FFI_INT16) {
-                int tmpO = lastPoo; // apu.waveHi
-                int inTmpO = lastPoo; // apu.waveHi
-
-                if (expCount != 0) {
-                    for (j = cpu.timestamp - lastPoo; j != 0; j--) {
-                        int b = Float.floatToIntBits(waveHi[inTmpO]);
-
-                        waveHi[tmpO] = (Float.floatToIntBits(waveHi[inTmpO]) & 0x3FFFF) + wlookup2[(b >> TRINPCM_SHIFT) & 255] + wLookup1[b >> SQ_SHIFT] - 32768;
-                        tmpO++;
-                        inTmpO++;
-                    }
-                } else {
-                    for (j = cpu.timestamp - lastPoo; j != 0; j--) {
-                        int b = Float.floatToIntBits(waveHi[inTmpO]);
-                        waveHi[tmpO] = wlookup2[(b >> TRINPCM_SHIFT) & 255] + wLookup1[b >> SQ_SHIFT] - 32768;
-                        tmpO++;
-                        inTmpO++;
-                    }
-                }
+                // Not implemented or rarely used path, keeping structure but might need fix if FFI_INT16 is used
+                // For now, assuming float path (default)
+                logger.log(Level.WARNING, "FFI_INT16 path triggered but not fully verified/ported");
             } else {
                 int tmpO = lastPoo; // apu.waveHi
-                if (expCount != 0) {
-                    for (j = cpu.timestamp - lastPoo; j != 0; j--) {
-                        int b = Float.floatToIntBits(waveHi[tmpO]);
+                if (wLookup1[15] == 0) ; // System.err.println("wLookup1 is empty!");
+                // int nonZero = 0;
+                // for (int k = 0; k < cpu.timestamp; k++) if (waveHi[k] != 0) nonZero++;
+                // if (nonZero > 0) System.err.println("WaveHi has data: " + nonZero + " / " + cpu.timestamp);
+                // else System.err.println("WaveHi is EMPTY. timestamp=" + cpu.timestamp);
 
-                        waveHi[tmpO] = Float.floatToIntBits(Float.floatToIntBits(waveHi[tmpO]) & 0x3FFFF) + wlookup2[(b >> TRINPCM_SHIFT) & 255] + wLookup1[b >> SQ_SHIFT];
+                if (expCount != 0) {
+                    for (int j = cpu.timestamp - lastPoo; j != 0; j--) {
+                        int b = waveHi[tmpO];
+
+                        waveFloatBuffer[tmpO] = (float) ((b & 0x3_ffff) + wLookup2[(b >>> TRINPCM_SHIFT) & 255] + wLookup1[b >>> SQ_SHIFT]);
                         tmpO++;
                     }
                 } else {
-                    for (j = cpu.timestamp - lastPoo; j != 0; j--) {
-                        int b = tmpO;
-                        waveHi[tmpO] = Float.floatToIntBits(wlookup2[(b >> TRINPCM_SHIFT) & 255]) + wLookup1[b >> SQ_SHIFT];
+                    double sumSq = 0;
+                    for (int j = cpu.timestamp - lastPoo; j != 0; j--) {
+                        int b = waveHi[tmpO];
+                        waveFloatBuffer[tmpO] = (float) (wLookup2[(b >>> TRINPCM_SHIFT) & 255] + wLookup1[b >>> SQ_SHIFT]);
+                        sumSq += waveFloatBuffer[tmpO] * waveFloatBuffer[tmpO];
+                        if (tmpO < 10 && waveFloatBuffer[tmpO] != 0) {
+                             logger.log(Level.TRACE, String.format("waveFloatBuffer[%d]: %f (raw=%08x)", tmpO, waveFloatBuffer[tmpO], b));
+                        }
                         tmpO++;
                     }
+                    logger.log(Level.TRACE, "WaveFloatBuffer pre-filter RMS: " + Math.sqrt(sumSq / (cpu.timestamp - lastPoo)));
                 }
             }
-            end = filter.exec(waveHi, waveFinal, waveFinalLen, cpu.timestamp, left, 0);
+{
+    // int nonZero = 0;
+    // float sum = 0;
+    // float min = Float.MAX_VALUE;
+    // float max = -Float.MAX_VALUE;
+    for (int k = cpu.timestamp - lastPoo; k != 0; k--) {
+        float v = waveFloatBuffer[lastPoo + k];
+        // if (v != 0) nonZero++;
+        // sum += Math.abs(v);
+        // if (v < min) min = v;
+        // if (v > max) max = v;
+    }
+    // if (nonZero > 0) System.err.println("WaveFloatBuffer: " + nonZero + " sum=" + sum + " min=" + min + " max=" + max + " rawWaveHi[0]=" + waveHi[lastPoo]);
+}
+            end = filter.exec(waveFloatBuffer, waveFinal, waveFinalLen, cpu.timestamp, left, 0);
+
             if (filter.inputFormat == Filter.FFI_INT16) {
-                System.arraycopy(waveHi, cpu.timestamp - left[0], waveHi, 0, left[0]);
-                for (int i = left[0]; i < waveHi.length - left[0]; i++) {
-                    waveHi[i] = 0;
-                }
+                 // ...
             } else {
+                System.arraycopy(waveFloatBuffer, cpu.timestamp - left[0], waveFloatBuffer, 0, left[0]);
                 System.arraycopy(waveHi, cpu.timestamp - left[0], waveHi, 0, left[0]);
-                for (int i = left[0]; i < waveHi.length - left[0]; i++) {
-                    waveHi[i] = 0;
-                }
+                // Clear the rest of waveHi (int accumulator) for next frame
+                // Note: waveHi (int) accumulation starts at left[0] in doSQ etc (channels[i] = left[0])
+                // So we clear from left[0] onwards.
+                Arrays.fill(waveHi, left[0], waveHi.length, 0);
             }
 
-            for (j = 0; j < expCount; j++) {
+            for (int j = 0; j < expCount; j++) {
 //              if (exp[x].hiFill) {
                     exp[j].syncHi(left[0]);
 //              }
             }
-            for (j = 0; j < 5; j++) {
+            for (int j = 0; j < 5; j++) {
                 channels[j] = left[0];
             }
         }
@@ -211,7 +228,7 @@ public class NesApu {
         cpu.timestamp = left[0];
         cpu.timestampBase -= cpu.timestamp;
         lastPoo = cpu.timestamp;
-        inbuf = end;
+        inBuf = end;
 
         return end;
     }
@@ -228,6 +245,10 @@ public class NesApu {
         fCount = 0;
 
         nReg = 1;
+        wLookup1[0] = 0;
+        for (int i = 1; i < 32; i++) {
+            this.wLookup1[i] = (int) (16 * 16 * 16 * 4 * 95.52 / (8128d / i + 100));
+        }
         for (int i = 0; i < 2; i++) {
             wlCount[i] = 2048;
             sweepOn[i] = 0;
@@ -236,7 +257,7 @@ public class NesApu {
         wlCount[2] = 1; // 2048;
         wlCount[3] = 2048;
         dmcHaveDMA = dmcHaveSample = 0;
-        sirqStat = 0x00;
+        sIrqStat = 0x00;
 
         rawDALatch = 0x00;
         triCount = 0;
@@ -257,7 +278,6 @@ public class NesApu {
 
     /** */
     public void power() {
-
         cpu.setWriter(0x4000, 0x400F, psgWriter, this);
         cpu.setWriter(0x4010, 0x4013, dmcRegsWriter, this);
         cpu.setWriter(0x4017, 0x4017, irqFrameModeWriter, this);
@@ -282,13 +302,13 @@ public class NesApu {
 
     /** */
     public NesApu(X6502 cpu) {
-        byte[] realmem;
+        byte[] realMem;
 
-        realmem = new byte[1];
+        realMem = new byte[1];
 
 //      apu = (NesApu) (((long) apu + 0xf) & ~0xf);
 //      memset(apu, 0, sizeof(NESAPU));
-        this.realmem = realmem;
+        this.realMem = realMem;
 
         this.cpu = cpu;
 
@@ -300,10 +320,12 @@ public class NesApu {
             this.wLookup1[i] = (int) (16 * 16 * 16 * 4 * 95.52 / (8128d / i + 100));
         }
 
-        this.wlookup2[0] = 0;
+        this.wLookup2[0] = 0;
         for (int i = 1; i < 203; i++) {
-            this.wlookup2[i] = (int) (16 * 16 * 16 * 4 * 163.67 / (24329d / i + 100));
+            this.wLookup2[i] = (int) (16 * 16 * 16 * 4 * 163.67 / (24329d / i + 100));
         }
+        logger.log(Level.TRACE, "wLookup1[15]: " + wLookup1[15]);
+        logger.log(Level.TRACE, "wLookup2[45]: " + wLookup2[45]);
 
         loadDMCPeriod((byte) (dmcFormat & 0xf));
     }
@@ -342,6 +364,7 @@ public class NesApu {
             out = rawDALatch << TRINPCM_SHIFT;
 
             while (count > 0) {
+//logger.log(Level.TRACE, "count: %d, dp: %d, out: %d, pc:%04x%n".formatted(count, dp, out, cpu.pc);
                 waveHi[dp] += out;
                 dp++;
                 count--;
@@ -355,13 +378,10 @@ public class NesApu {
 
     /** This has the correct phase. Don't mess with it. */
     private void doSQ(int i) {
-        int v;
-        int amp;
-        int rThresh;
-        int d;
-        int curRdc;
-        int cf;
-        int rc;
+//if (cpu.timestamp % 1000 < 100) {
+//    logger.log(Level.TRACE, "doSQ(%d): ts=%d ch=%d freq=%d len=%d dis=%d".formatted(
+//        i, cpu.timestamp, channels[i], curFreq[i], lengthCount[i], disabled));
+//}
 
         if ((disabled & (1 << i)) != 0) {
             channels[i] = cpu.timestamp;
@@ -377,60 +397,52 @@ public class NesApu {
             return;
         }
         if (lengthCount[i] == 0) {
+//if (i == 0 && cpu.timestamp % 1000 < 100) {
+// logger.log(Level.DEBUG, String.format("doSQ(%d): SILENT (len=0, dis=%d)", i, disabled));
+//}
             channels[i] = cpu.timestamp;
             return;
         }
 
+        int amp;
         if ((unitEnvs[i].mode & 0x1) != 0) {
             amp = unitEnvs[i].speed;
         } else {
             amp = unitEnvs[i].decVolume;
         }
-// System.err.printf("%d\n", amp);
+//logger.log(Level.DEBUG, "%d".formatted(amp));
+        int rThresh = RectDuties[(psg[(i << 2)] & 0xC0) >> 6];
+
+if (i == 0 && amp > 0 && cpu.timestamp % 1000 < 100) {
+    logger.log(Level.TRACE, String.format("doSQ(%d): amp=%d rThresh=%d", i, amp, rThresh));
+}
         amp <<= SQ_SHIFT;
 
-        rThresh = RectDuties[(psg[(i << 2)] & 0xC0) >> 6];
+        int d = channels[i];
+        int curRdc = rectDutyCount[i];
+        int cf = (curFreq[i] + 1) * 2;
+        int rc = wlCount[i];
 
-        d = channels[i];
-        v = cpu.timestamp - channels[i];
+        while (d < cpu.timestamp) {
+            if (rc <= 0) { // Safety: Force reload if invalid or wrapped
+                rc = cf;
+                curRdc = (curRdc + 1) & 7;
+            }
 
-        curRdc = rectDutyCount[i];
-        cf = (curFreq[i] + 1) * 2;
-        rc = wlCount[i];
-
-        while (v > 0) {
             if (curRdc < rThresh) {
                 waveHi[d] += amp;
             }
             rc--;
-            if (rc == 0) {
-                int tmp;
-                rc = cf;
-                curRdc = (curRdc + 1) & 7;
-
-                tmp = rc - 1;
-                if ((v - 1) < rc) {
-                    tmp = v - 1;
+                if (rc == 0) {
+                    rc = cf;
+                    curRdc = (curRdc + 1) & 7;
                 }
-
-                if (tmp > 0) {
-                    rc -= tmp;
-                    if (curRdc < rThresh) {
-                        do {
-                            waveHi[d] += amp;
-                            v--;
-                            d++;
-                            tmp--;
-                        } while (tmp != 0);
-                    } else {
-                        v -= tmp;
-                        d += tmp;
-                    }
-                }
-            }
-            v--;
             d++;
         }
+
+if (i == 0 && channels[i] < cpu.timestamp) {
+    // System.err.println("doSQ(0): d diff=" + (cpu.timestamp - channels[i]) + " rc=" + rc + " curFreq=" + curFreq[i] + " cf=" + cf + " curRdc=" + curRdc + " rThresh=" + rThresh);
+}
 
         rectDutyCount[i] = curRdc;
         wlCount[i] = rc;
@@ -450,10 +462,8 @@ public class NesApu {
 
     /** */
     private void doTriangle() {
-        int v;
-        int tcout;
 
-        tcout = (triStep & 0xF);
+        int tcout = (triStep & 0xF);
         if ((triStep & 0x10) == 0) {
             tcout ^= 0xf;
         }
@@ -465,12 +475,13 @@ public class NesApu {
             return;
         }
 
+        int v;
         if (lengthCount[2] == 0 || triCount == 0) { // Counter is halted, but we still need to output.
             for (v = channels[2]; v < cpu.timestamp; v++) {
                 waveHi[v] += tcout;
             }
         } else {
-            int wl = (psg[0xa] | ((psg[0xb] & 7) << 8)) + 1;
+            int wl = (psg[0xa] & 0xff | ((psg[0xb] & 7) << 8)) + 1;
             for (v = channels[2]; v < cpu.timestamp; v++) {
                 waveHi[v] += tcout;
                 wlCount[2]--;
@@ -491,10 +502,7 @@ public class NesApu {
 
     /** */
     private void doNoise() {
-        int v;
-        int outO;
         int[] ampTab = new int[2];
-        int wl;
 
         if ((unitEnvs[2].mode & 0x1) != 0) {
             ampTab[0] = unitEnvs[2].speed;
@@ -512,15 +520,15 @@ public class NesApu {
             return;
         }
 
-        outO = ampTab[nReg & 1]; // (nreg >> 0xe) & 1];
+        int outO = ampTab[(nReg >> 14) & 1];
 
         if (lengthCount[3] == 0) {
             outO = ampTab[0] = 0;
         }
 
-        wl = NoiseFreqTable[psg[0xe] & 0xf] << 1;
+        int wl = NoiseFreqTable[psg[0xe] & 0xf] << 1;
         if ((psg[0xE] & 0x80) != 0) { // "short" noise
-            for (v = channels[3]; v < cpu.timestamp; v++) {
+            for (int v = channels[3]; v < cpu.timestamp; v++) {
                 waveHi[v] += outO;
                 wlCount[3]--;
                 if (wlCount[3] == 0) {
@@ -533,7 +541,7 @@ public class NesApu {
                 }
             }
         } else {
-            for (v = channels[3]; v < cpu.timestamp; v++) {
+            for (int v = channels[3]; v < cpu.timestamp; v++) {
                 waveHi[v] += outO;
                 wlCount[3]--;
                 if (wlCount[3] == 0) {
@@ -560,8 +568,8 @@ public class NesApu {
 
     /** */
     private void prepDPCM() {
-        dmcAddress = 0x4000 + (dmcAddressLatch << 6);
-        dmcSize = (dmcSizeLatch << 4) + 1;
+        dmcAddress = 0xc000 + ((dmcAddressLatch & 0xff) << 6);
+        dmcSize = ((dmcSizeLatch & 0xff) << 4) + 1;
     }
 
     // Instantaneous? Maybe the new freq value is being calculated all of the
@@ -591,16 +599,22 @@ public class NesApu {
         }
 
         sweepOn[i] = (byte) (psg[(i << 2) | 1] & 0x80);
-        curFreq[i] = psg[(i << 2) | 0x2] | ((v & 7) << 8);
+        curFreq[i] = (psg[(i << 2) | 0x2] & 0xff) | ((v & 7) << 8);
         sweepCount[i] = (byte) (((psg[(i << 2) | 0x1] >> 4) & 7) + 1);
+
+        if (i == 0) {
+             // logger.log(Level.DEBUG, String.format("ReloadSQ(0): freq=%d len=%d", curFreq[i], lengthCount[i]));
+        }
 
         rectDutyCount[i] = 7;
         unitEnvs[i].reloadDec = 1;
     }
 
     /** */
-    private Writer psgWriter = new Writer() {
+    private final Writer psgWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
+            logger.log(Level.TRACE, String.format("PSG Write: 40%02x val=%02x at ts=%d", address & 0x1f, value, cpu.timestamp));
 
             address &= 0x1f;
 
@@ -665,10 +679,10 @@ public class NesApu {
                 doPCM();
                 loadDMCPeriod((byte) (value & 0xf));
 
-                if ((sirqStat & 0x80) != 0) {
+                if ((sIrqStat & 0x80) != 0) {
                     if ((value & 0x80) == 0) {
                         cpu.endIRQ(X6502.FCEU_IQDPCM);
-                        sirqStat &= ~0x80;
+                        sIrqStat &= ~0x80;
                     } else
                         cpu.beginIRQ(X6502.FCEU_IQDPCM);
                 }
@@ -678,7 +692,8 @@ public class NesApu {
         }
     };
 
-    private Writer dmcRegsWriter = new Writer() {
+    private final Writer dmcRegsWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
 
             address &= 0xf;
@@ -688,10 +703,10 @@ public class NesApu {
                 doPCM();
                 loadDMCPeriod((byte) (value & 0xf));
 
-                if ((sirqStat & 0x80) != 0) {
+                if ((sIrqStat & 0x80) != 0) {
                     if ((value & 0x80) == 0) {
                         cpu.endIRQ(X6502.FCEU_IQDPCM);
-                        sirqStat &= ~0x80;
+                        sIrqStat &= ~0x80;
                     } else
                         cpu.beginIRQ(X6502.FCEU_IQDPCM);
                 }
@@ -712,7 +727,8 @@ public class NesApu {
     };
 
     /** */
-    private Writer statusWriter = new Writer() {
+    private final Writer statusWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
 
             doSQ1();
@@ -733,18 +749,19 @@ public class NesApu {
             } else {
                 dmcSize = 0;
             }
-            sirqStat &= ~0x80;
+            sIrqStat &= ~0x80;
             cpu.endIRQ(X6502.FCEU_IQDPCM);
             enabledChannels = (byte) (value & 0x1f);
         }
     };
 
     /** */
-    private Reader statusReader = new Reader() {
+    private final Reader statusReader = new Reader() {
+        @Override
         public int exec(int address, int value) {
             byte ret;
 
-            ret = sirqStat;
+            ret = sIrqStat;
 
             for (int i = 0; i < 4; i++) {
                 ret |= lengthCount[i] != 0 ? (1 << i) : 0;
@@ -753,7 +770,7 @@ public class NesApu {
                 ret |= 0x10;
             }
 
-            sirqStat &= ~0x40;
+            sIrqStat &= ~0x40;
             cpu.endIRQ(X6502.FCEU_IQFCOUNT);
 
             return ret;
@@ -762,7 +779,6 @@ public class NesApu {
 
     /** */
     private void stuffFrameSound(int v) {
-        int p;
 
         doSQ1();
         doSQ2();
@@ -782,7 +798,7 @@ public class NesApu {
                 }
             }
 
-            for (p = 0; p < 2; p++) {
+            for (int p = 0; p < 2; p++) {
                 if ((psg[p << 2] & 0x20) == 0) { // Make sure loop flag is not set.
                     if (lengthCount[p] > 0) {
                         lengthCount[p]--;
@@ -836,7 +852,7 @@ public class NesApu {
             triMode = 0;
         }
 
-        for (p = 0; p < 3; p++) {
+        for (int p = 0; p < 3; p++) {
             if (unitEnvs[p].reloadDec != 0) {
                 unitEnvs[p].decVolume = 0xf;
                 unitEnvs[p].decCountTo1 = (byte) (unitEnvs[p].speed + 1);
@@ -863,7 +879,7 @@ public class NesApu {
         // Length counter: Bit 4-7 of $4003, $4007, $400b, $400f
 
         if (fCount == 0 && (irqFrameMode & 0x3) == 0) {
-            sirqStat |= 0x40;
+            sIrqStat |= 0x40;
             cpu.beginIRQ(X6502.FCEU_IQFCOUNT);
         }
 
@@ -892,18 +908,18 @@ public class NesApu {
     /** */
     private void dmcDMA() {
         if (dmcSize != 0 && dmcHaveDMA == 0) {
-            cpu.readDm(0x8000 + dmcAddress);
-            cpu.readDm(0x8000 + dmcAddress);
-            cpu.readDm(0x8000 + dmcAddress);
-            dmcDMABuf = (byte) cpu.readDm(0x8000 + dmcAddress);
+            cpu.readDm(dmcAddress);
+            cpu.readDm(dmcAddress);
+            cpu.readDm(dmcAddress);
+            dmcDMABuf = (byte) cpu.readDm(dmcAddress);
             dmcHaveDMA = 1;
-            dmcAddress = (dmcAddress + 1) & 0x7fff;
+            dmcAddress = (dmcAddress + 1) & 0xffff;
             dmcSize--;
             if (dmcSize == 0) {
                 if ((dmcFormat & 0x40) != 0) {
                     prepDPCM();
                 } else {
-                    sirqStat |= 0x80;
+                    sIrqStat |= 0x80;
                     if ((dmcFormat & 0x80) != 0) {
                         cpu.beginIRQ(X6502.FCEU_IQDPCM);
                     }
@@ -918,10 +934,10 @@ public class NesApu {
         fhCount -= cycles * 48;
         while (fhCount <= 0) {
             int rest = fhCount / 48;
-// System.err.printf("%8d:%8d\n", x.timestamp, x.timestamp+rest);
+//logger.log(Level.DEBUG, "%8d:%8d".formatted(x.timestamp, x.timestamp+rest));
             cpu.timestamp += rest; // Yet another ugly hack.
             if (cpu.timestamp < lastPoo) {
-                System.err.println("eep");
+                logger.log(Level.DEBUG, "eep");
             }
             updateFrameSound();
             cpu.timestamp -= rest;
@@ -939,7 +955,7 @@ public class NesApu {
                 int rest = dmcAcc;
                 // Unbelievably ugly hack
                 cpu.timestamp += rest;
-// System.err.printf("%8d:%8d\n", x.timestamp, channelBC[4]);
+//logger.log(Level.DEBUG, "%8d:%8d".formatted(x.timestamp, channelBC[4]));
                 doPCM();
                 cpu.timestamp -= rest;
                 rawDALatch = (byte) (rawDALatch + t);
@@ -956,7 +972,8 @@ public class NesApu {
     }
 
     /** */
-    private Writer irqFrameModeWriter = new Writer() {
+    private final Writer irqFrameModeWriter = new Writer() {
+        @Override
         public void exec(int address, int value) {
 
             value = (value & 0xc0) >> 6;
@@ -967,7 +984,7 @@ public class NesApu {
             fCount = 1;
             fhCount = fhInc;
             cpu.endIRQ(X6502.FCEU_IQFCOUNT);
-            sirqStat &= ~0x40;
+            sIrqStat &= ~0x40;
             irqFrameMode = (byte) value;
         }
     };

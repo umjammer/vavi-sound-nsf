@@ -31,23 +31,23 @@ import java.util.List;
  */
 class CombinedFidFilter extends FidFilter {
     /** Magic: 0x64966325 */
-    private int magic;
+    private final int magic;
     /** FIR parameters */
-    private double[]fir;
+    private final double[] fir;
     /** Number of FIR parameters */
-    private int n_fir;
+    private final int n_fir;
     /** IIR parameters */
-    private double []iir;
+    private final double[] iir;
     /** Number of IIR parameters */
-    private int n_iir;
+    private final int n_iir;
     /** Number of entries in buffer */
-    private int n_buf;
+    private final int n_buf;
     /** Combined filter */
-    private List<FidFilter> filt;
+    private final List<FidFilter> filt;
     /** */
-    private double[] buf;
+    private final double[] buf;
 
-    /** */
+    @Override
     public double filter_step(double val) {
         int a;
 
@@ -76,7 +76,7 @@ class CombinedFidFilter extends FidFilter {
     public CombinedFidFilter(List<FidFilter> filt) {
         FidFilter ff;
 
-        this.magic = 0x64966325;
+        this.magic = 0x6496_6325;
         this.filt = fid_flatten(filt);
 
         Iterator<FidFilter> i = filt.iterator();
@@ -100,7 +100,7 @@ class CombinedFidFilter extends FidFilter {
         this.n_buf = Math.max(this.n_fir, this.n_iir);
 
         // buffer
-        if (this.magic != 0x64966325) {
+        if (this.magic != 0x6496_6325) {
             throw new IllegalArgumentException("Bad handle passed");
         }
 
@@ -110,7 +110,7 @@ class CombinedFidFilter extends FidFilter {
     /**
      * Reinitialise an instance ready to start afresh
      */
-    void fid_run_zapbuf() {
+    void fid_run_zapBuf() {
         for (int i = 0; i < n_buf; i++) {
             buf[i] = 0;
         }

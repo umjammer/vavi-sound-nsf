@@ -30,24 +30,26 @@ import vavi.sound.nsf.festalon.Writer;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060911 nsano initial version <br>
  */
-public class ay extends ExpSound {
+public class Ay extends ExpSound {
     byte index;
-    byte[] PSG = new byte[0x10];
-    int[] vcount = new int[3];
-    int[] dcount = new int[3];
-    int[] CAYBC = new int[3];
-    NesApu gapu;
+    final byte[] PSG = new byte[0x10];
+    final int[] vcount = new int[3];
+    final int[] dcount = new int[3];
+    final int[] CAYBC = new int[3];
+    final NesApu gapu;
     int disabled;
 
     /** */
-    private Writer Mapper69_SWL = new Writer() {
+    private final Writer Mapper69_SWL = new Writer() {
+        @Override
         public void exec(int A, int V) {
             index = (byte) (V & 0xF);
         }
     };
 
     /** */
-    private Writer Mapper69_SWH = new Writer() {
+    private final Writer Mapper69_SWH = new Writer() {
+        @Override
         public void exec(int A, int V) {
             int x;
 
@@ -83,7 +85,7 @@ public class ay extends ExpSound {
         int amp = (PSG[0x8 + x] & 15) << 6;
         int curout;
         int timestamp = gapu.cpu.timestamp;
-        float[] WaveHi;
+        int[] WaveHi;
         amp += amp >> 1;
 
         if ((PSG[0x7] & (1 << x)) == 0 && (disabled & (0x1 << x)) == 0) {
@@ -108,12 +110,14 @@ public class ay extends ExpSound {
         CAYBC[x] = gapu.cpu.timestamp;
     }
 
+    @Override
     public void fillHi() {
         doAYSQHQ(0);
         doAYSQHQ(1);
         doAYSQHQ(2);
     }
 
+    @Override
     public void syncHi(int ts) {
         int x;
 
@@ -122,14 +126,16 @@ public class ay extends ExpSound {
         }
     }
 
+    @Override
     public void kill() {
     }
 
+    @Override
     public void disable(int mask) {
         disabled = mask;
     }
 
-    public ay(NesApu apu) {
+    public Ay(NesApu apu) {
         gapu = apu;
 
         this.channels = 3;

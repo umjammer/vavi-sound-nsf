@@ -14,14 +14,19 @@ package vavi.sound.nsf.festalon;
  * @version 0.00 060501 nsano initial version <br>
  */
 public abstract class ExpSound {
+
     /** */
     public abstract void fillHi();
+
     /** */
     public abstract void syncHi(int ts);
+
     /** */
     public abstract void kill();
+
     /** */
     public abstract void disable(int mask);
+
     /** */
     protected int channels;
 }
