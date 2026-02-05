@@ -53,3 +53,4 @@ clip.loop(Clip.LOOP_CONTINUOUSLY);
  * ~~use jpl instead of jul~~
  * ~~festalon~~
    * spi
+   * fidlib

@@ -54,7 +54,7 @@ class FestalonTest {
     String in = "src/test/resources/test.nsf";
 
     @Property
-    int track = 0;
+    int track = 5;
 
     @Property(name = "vavi.test.volume")
     double volume = 0.2;
@@ -82,7 +82,7 @@ Debug.println("Total Songs: " + nsf.totalSongs + ", Starting Song: " + nsf.start
         nsf.setSound(44100, 1);
         nsf.disable(0);
 
-        nsf.setVolume((int) (100 * volume));
+        nsf.setVolume(100);
         nsf.setLowPass(false, 0, 0);
 
 //        Arrays.asList(nsf.songNames).forEach(System.err::println);
@@ -179,7 +179,7 @@ Debug.println("Total Songs: " + nsf.totalSongs + ", Starting Song: " + nsf.start
         // Peak dB calculation
         // 20 * log10(maxRms)
         double peakDb = 20 * Math.log10(maxRms);
-        Debug.println("Peak dB: " + peakDb);
+        Debug.println("Peak dB: " + peakDb + ", maxRms: " + maxRms);
 
         if (maxRms < 0.01) { // -40dB is approx 0.01
              throw new AssertionError("No sound detected (RMS too low). Peak dB: " + peakDb);

@@ -52,7 +52,7 @@ public class TestCase {
     String inFile = "src/test/resources/test.nsf";
 
     @Property
-    int track = 0;
+    int track = 5;
 
     @Property(name = "vavi.test.volume")
     double volume = 0.2;
