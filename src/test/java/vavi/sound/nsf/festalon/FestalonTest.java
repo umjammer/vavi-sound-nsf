@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -72,12 +73,62 @@ Debug.println("volume: " + volume);
     static long time = onIde ? 1000 * 1000 : 10 * 1000;
 
     @Test
+    @EnabledIfSystemProperty(named = "vavi.test", matches = "true")
+    void test0() throws Exception {
+Debug.println(in);
+        byte[] buffer = Files.newInputStream(Path.of(in)).readAllBytes();
+
+        Nsf nsf = (Nsf) Nsf.load(buffer, buffer.length);
+        nsf.controlSong(track);
+Debug.println("Total Songs: " + nsf.totalSongs + ", Starting Song: " + nsf.startingSong);
+        nsf.setSound(44100, 1);
+        nsf.disable(0);
+
+        nsf.setVolume(100);
+        nsf.setLowPass(false, 0, 0);
+
+        CountDownLatch cdl = new CountDownLatch(1);
+
+        AudioFormat audioFormat = new AudioFormat(44100, 16, 1, true, false); // Changed to little-endian for easier debugging if needed, but matched with loop
+
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
+        SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
+        line.open(audioFormat);
+        volume(line, volume);
+        line.addLineListener(ev -> { if (LineEvent.Type.STOP == ev.getType()) cdl.countDown(); });
+        line.start();
+
+        int[] r = new int[1];
+        do {
+            float[] wave = nsf.emulate(r);
+            int validSamples = r[0];
+            if (wave != null && validSamples > 0) {
+
+                ByteBuffer bb = ByteBuffer.allocate(2 * validSamples).order(ByteOrder.LITTLE_ENDIAN);
+                for (int i = 0; i < validSamples; i++) {
+                    // Convert 0.0-1.0 to -32768 to 32767
+                    short s = (short) ((wave[i] - 0.5f) * 65535.0f);
+                    bb.putShort(s);
+                }
+                byte[] bytes = bb.array();
+                line.write(bytes, 0, bytes.length);
+            }
+
+        } while (r[0] > 0);
+
+        line.drain();
+        line.stop();
+        line.close();
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "vavi.test", matches = "true")
     void test1() throws Exception {
 Debug.println(in);
         byte[] buffer = Files.newInputStream(Path.of(in)).readAllBytes();
 
         Nsf nsf = (Nsf) Nsf.load(buffer, buffer.length);
-        nsf.controlSong(track + 1);
+        nsf.controlSong(track);
 Debug.println("Total Songs: " + nsf.totalSongs + ", Starting Song: " + nsf.startingSong);
         nsf.setSound(44100, 1);
         nsf.disable(0);
@@ -198,8 +249,7 @@ Debug.println("Total Songs: " + nsf.totalSongs + ", Starting Song: " + nsf.start
     void test2() throws Exception {
         Path refPath = Paths.get("tmp/out.wav");
         if (!Files.exists(refPath)) {
-            System.err.println("Reference file tmp/out.wav not found, skipping quality test.");
-            return;
+            throw new IllegalStateException("Reference file tmp/out.wav not found, skipping quality test.");
         }
 
         AudioInputStream ais = AudioSystem.getAudioInputStream(refPath.toFile());

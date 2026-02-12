@@ -111,30 +111,30 @@ public class Filter {
         };
         double[] tmp;
         int x;
-//      int nco;
+//        int nco;
         int div;
-//      int srctype;
+//        int srctype;
 
-//      nco = NCOEFFS;
+//        nco = NCOEFFS;
 
         if (soundQ != 0) {
             tmp = tabs2[(pal ? 1 : 0)];
             div = 16;
-//          srctype = SRC_SINC_BEST_QUALITY;
+//            srctype = SRC_SINC_BEST_QUALITY;
         } else {
             tmp = tabs[(pal ? 1 : 0)];
             div = 32;
-//          srctype = SRC_SINC_FASTEST;
+//            srctype = SRC_SINC_FASTEST;
         }
 
         mrRatio = div;
-//      int max = 0;
+//        int max = 0;
         for (x = 0; x < NCOEFFS >> 1; x++) {
             coeffs_i16[x] = coeffs_i16[NCOEFFS - 1 - x] = (short) (tmp[x] * 65536);
             coeffs[x] = coeffs[NCOEFFS - 1 - x] = (float) tmp[x];
-//          if (Math.abs(coeffs_i16[x]) > Math.abs(max)) {
-//              max = abs(coeffs_i16[x]);
-//          }
+//            if (Math.abs(coeffs_i16[x]) > Math.abs(max)) {
+//                max = abs(coeffs_i16[x]);
+//            }
         }
         this.rate = rate;
 
@@ -145,10 +145,10 @@ public class Filter {
         imRate = cpuclock / div;
         lrhFactor = rate / imRate;
 
-//      int error;
-//      lrh = src_new(srctype, 1, error);
+//        int error;
+//        lrh = src_new(srctype, 1, error);
 
-//      cpuExt = ac_mmflag();
+//        cpuExt = ac_mmflag();
 
         inputFormat = FFI_FLOAT;
     }
@@ -238,8 +238,8 @@ public class Filter {
         }
 
         resamplePos = pos - count;
-    if (resamplePos < 0) resamplePos = 0;
-
+        if (resamplePos < 0)
+            resamplePos = 0;
 
         execSexyFilter(out, out, outIndex);
         return outIndex;

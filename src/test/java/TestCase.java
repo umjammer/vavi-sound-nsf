@@ -57,12 +57,18 @@ public class TestCase {
     @Property(name = "vavi.test.volume")
     double volume = 0.2;
 
+    @Property
+    boolean festalon;
+
     @BeforeEach
     void setup() throws Exception {
         if (localPropertiesExists()) {
             PropsEntity.Util.bind(this);
         }
-Debug.println("volume: " + volume);
+
+        if (festalon) System.setProperty("vavi.sound.sampled.nsf.festalon", "true");
+
+Debug.println("volume: " + volume + ", festalon: " + System.getProperty("vavi.sound.sampled.nsf.festalon"));
 for (AudioFileFormat.Type type : AudioSystem.getAudioFileTypes()) {
  System.err.println(type);
 }
