@@ -7,7 +7,8 @@
 package vavi.sound.sampled.nsf;
 
 import java.io.IOException;
-
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.spi.FormatConversionProvider;
@@ -18,11 +19,23 @@ import static javax.sound.sampled.AudioSystem.NOT_SPECIFIED;
 
 /**
  * NsfFormatConversionProvider.
- *
+ * <p>
+ * system property
+ * {@code vavi.sound.sampled.nsf.festalon} ... use festalon engine or not. default {@code false}
+ * </p>
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 201027 nsano initial version <br>
  */
 public class NsfFormatConversionProvider extends FormatConversionProvider {
+
+    private static final Logger logger = System.getLogger(NsfFormatConversionProvider.class.getName());
+
+    private static boolean festalon = false;
+
+    static {
+        festalon = System.getProperty("vavi.sound.sampled.nsf.festalon", "false").equals("true");
+logger.log(Level.TRACE, "vavi.sound.sampled.nsf.festalon: " + festalon);
+    }
 
     @Override
     public AudioFormat.Encoding[] getSourceEncodings() {
@@ -69,7 +82,10 @@ public class NsfFormatConversionProvider extends FormatConversionProvider {
                     if (sourceFormat.equals(targetFormat)) {
                         return sourceStream;
                     } else if (sourceFormat.getEncoding() instanceof NsfEncoding && targetFormat.getEncoding().equals(PCM_SIGNED)) {
-                        return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
+                        if (festalon)
+                            return new Festalon2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
+                        else
+                            return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
                     } else if (sourceFormat.getEncoding().equals(PCM_SIGNED) && targetFormat.getEncoding() instanceof NsfEncoding) {
                         throw new IllegalArgumentException("unable to convert " + sourceFormat + " to " + targetFormat);
                     } else {
@@ -97,7 +113,10 @@ public class NsfFormatConversionProvider extends FormatConversionProvider {
                         return sourceStream;
                     } else if (sourceFormat.getEncoding() instanceof NsfEncoding &&
                                targetFormat.getEncoding().equals(PCM_SIGNED)) {
-                        return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
+                        if (festalon)
+                            return new Festalon2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
+                        else
+                            return new Nsf2PcmAudioInputStream(sourceStream, targetFormat, NOT_SPECIFIED, targetFormat.properties());
                     } else if (sourceFormat.getEncoding().equals(PCM_SIGNED) && targetFormat.getEncoding() instanceof NsfEncoding) {
                         throw new IllegalArgumentException("unable to convert " + sourceFormat + " to " + targetFormat);
                     } else {

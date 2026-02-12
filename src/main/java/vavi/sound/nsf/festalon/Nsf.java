@@ -45,7 +45,7 @@ import static java.lang.System.getLogger;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
  * @version 0.00 060310 nsano initial version <br>
  */
-class Nsf extends Plugin {
+public class Nsf extends Plugin {
 
     private static final Logger logger = getLogger(Nsf.class.getName());
 

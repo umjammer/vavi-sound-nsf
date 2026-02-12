@@ -9,7 +9,7 @@
 
 [NSF](https://www.nesdev.org/wiki/NSF) Java Sound SPI powered by [nsf](https://github.com/orangelando/nsf) and festalon (wip)
 
-### chips
+### chips (fetalon)
 
 | name | status | comment |
 |------|:------:|---------|
@@ -35,10 +35,14 @@ clip.open(AudioSystem.getAudioInputStream(new AudioFormat(Encoding.PCM_SIGNED, 4
 clip.loop(Clip.LOOP_CONTINUOUSLY);
 ```
 
+### system property
+
+* `vavi.sound.sampled.nsf.festalon` ... use festalon engine or not. default `false`
+
 ### properties for target `AudioFormat`
 
-* `track` ... specify track # in the file to play
-* `maxPlaySecs` ... specify max play time in \[sec]
+* `track` ... specify track # in the file to play, 1 origin
+* `maxPlaySecs` ... specify max play time in \[sec] ⚠️ nsf engine only
 
 ## References
 
@@ -52,5 +56,5 @@ clip.loop(Clip.LOOP_CONTINUOUSLY);
    * on m2 ultra mac no problem
  * ~~use jpl instead of jul~~
  * ~~festalon~~
-   * spi
-   * fidlib
+   * ~~spi~~
+   * ~~fidlib~~
